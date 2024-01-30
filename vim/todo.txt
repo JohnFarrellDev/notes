@@ -2,3 +2,6 @@
 2. vim adventures (web game)
 3. Pratical Vim - Drew Neil
 4. neovim (kickstart)
+5. Prime youtube vim playlist (https://www.youtube.com/watch?v=X6AR2RMB5tE&list=RDCMUC8ENHE5xdFSwx71u3fDH5Xw&start_radio=1&rv=X6AR2RMB5tE&t=19)
+6. teej on youtube
+7. prime on frontend masters
