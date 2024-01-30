@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS for JS Devs | Rendering Logic</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex">
+</head>
+<body>
+    <h1>Rendering Logic</h1>
+
+    <h2>Built-in Declarations and Inheritance</h2>
+
+    <p>HTML tags by default come with some pre-defined minimal styling. Some of this is worth not overriding for accessibility reasons such as the outline property on a button when focussed.</p>
+    <p>Or for example the anchor tag has some default styling.</p>
+    <pre>
+a {
+    color: -webkit-link;
+    cursor: pointer;
+    text-decoration: underline;
+}</pre>
+    <p>The default styling applied to HTML elements can vary between different browsers such as the focus rings.</p>
+    <p>There are a few hard rules around default styling in the HTML spec but most of the defaults are set by the browsers.</p>
+
+    <h3>Inheritance</h3>
+
+    <p>Some CSS properties are inherited from the parent element. For example the font-family property is inherited by all child elements.</p>
+
+    <pre>
+&lt;style>
+    p {
+        color: deeppink;
+    }
+&lt;/style>
+    
+&lt;p>
+    I know &lt;em>you&lt;/em> are, but what am I?
+&lt;/p></pre>
+
+    <p>In the above case the color of the text inside the <code>em</code> element is also deeppink as the color is inherited from the <code>p</code> element.</p>
+
+    <p>Not all CSS properties are inheritable though.</p>
+
+    <pre>
+&lt;style>
+    p {
+        border: 1px solid hotpink;
+    }
+&lt;/style>
+    
+&lt;p>
+    I know &lt;em>you&lt;/em> are, but what am I?
+&lt;/p></pre>
+
+    <p>In the case of the border the border property is not also applied to the <code>em</code> element within the <code>p</code> element unless we explicitly apply the border to the em as well.</p>
+    <p>Most of the inheritable properties are text related, the <a href="https://www.sitepoint.com/css-inheritance-introduction/#list-css-properties-inherit">full list is here</a>.</p>
+
+    <p>Sometimes an element by default might not inherit for a certain property but we want to force this, we can do this with the value of inherit.</p>
+
+    <p>For example the default styles of an <code>a</code> tag is</p>
+
+    <pre>
+a {
+    color: -webkit-link;
+    cursor: pointer;
+    text-decoration: underline;
+}</pre>
+
+    <p>But we might not want the color to be webkit-link (the classic blue color we see for a link, or purple when visited)</p>
+
+    <pre>
+&lt;style>
+    a {
+        color: inherit;
+    }
+&lt;/style>
+
+&lt;p>
+    This paragraph contains &lt;a href="#">a hyperlink&lt;/a>!
+&lt;/p>
+&lt;p style="color: red;">
+    This is a red paragraph with &lt;a href="#">another link&lt;/a>.
+&lt;/p></pre>
+
+    <h2>The Cascade</h2>
+
+    <pre>&lt;style>
+    .introduction {
+        color: green;
+    }
+
+    p {
+        font-weight: bold;
+        color: blue;
+    }
+    
+&lt;/style>
+    
+&lt;p class="introduction">
+    Hello world
+&lt;/p></pre>
+
+    <p>In the above code we have 2 rules that target the same <code>p</code> tag. In this case the <code>.introduction</code> has a higher specificity than the the styling rule applied to all <code>p</code> tags.</p>
+    <p>This means that when the browser rending engine sees that a shared property exists in both rules but with different values the rule with the higher specificity is applied to the element, in this case the <code>color</code> of <code>green</code>.</p>
+    <p>The <code>font-weight</code> that exists on the p tag selector rule is still applied as the <code>.introduction</code> rule does not have a declaration to override this.</p>
+
+    <p>We can think of this in JavaScript terms.</p>
+
+    <pre>const appliedStyles = {
+        ...inheritedStyles,
+        ...tagStyles,
+        ...classStyles,
+        ...idStyles,
+        ...inlineStyles,
+        ...importantStyles
+    }</pre>
+
+    <h2>Block and Inline Directions</h2>
+
+    <p>In CSS pages are made up of two directions, horizontal and vertical.</p>
+    <p>In a block direction we move vertically down the page.  (like stacking blocks of lego on top of each other)</p>
+    <p>In an inline direction we move horizontally across the page.(we move in line...)</p>
+    <p>It's also important to note direction, most languages read left to right but arabic for example reads right to left.</p>
+    <p>For this reason the default styles for a <code>p</code> tag in chrome are.</p>
+
+    <pre>
+p {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+}
+    </pre>
+
+    <p>In english <code>margin-inline-start</code> refers to the left of the element but in arabic it would refer to the right.</p>
+
+    <h2>The Box Model</h2>
+
+    <p>The box model consists of four parts</p>
+    <ol>
+        <li>Content</li>
+        <li>Padding</li>
+        <li>Border</li>
+        <li>Margin</li>
+    </ol>
+
+    <p>The content is well the content, in a paragraph tag for example it's the text inside the element.</p>
+    <p>The padding is internal spacing between the content and the border.</p>
+    <p>The border is the visible edge around our element. (with the padding spacing it from the content)</p>
+    <p>The margin is the spacing between our element's border and other elements.</p>
+
+    <p>By default the <code>box-sizing</code> property has a value of <code>content-box</code>. The behaviour of <code>content-box</code> is not intuitive and what most people would expect.</p>
+
+    <div style="box-sizing: content-box; height: 150px; width: 500px; background-color: red; padding: 20px; margin: 10px; border: 5px solid blue; overflow-wrap: break-word;">
+        <p style="margin: 0; padding: 0;">This div uses the content-box model and additional internal styling.</p>
+        <pre style="white-space: pre-wrap;">
+style="box-sizing: content-box; height: 150px; width: 500px; background-color: red; padding: 20px; margin: 10px; border: 5px solid blue;"
+        </pre>
+    </div>
+
+    <p>Even though we have set the width to 500px and height to 150px when we inspect the element in the browser it has a width of 550px and a height of 150px. This is due to unintuitive nature of the border-box value for the box-sizing property which is the default value set by browsers for our elements.</p>
+    <p>The 550px visual width is calculated by using the width value of 500px (which is applied to the content), the padding of 20px to each side adds another 40px, the border of 5px to each side adds another 10px.</p>
+    <p>500 + (20 * 2) + (5 * 2) = 550</p>
+
+    <p>The 200px visual height is calculated by using the height value of 150px (which is applied to the content), the padding of 20px to each side adds another 40px, the border of 5px to each side adds another 10px.</p>
+    <p>150 + (20 * 2) + (5 * 2) = 150</p>
+
+    <div style="box-sizing: border-box; height: 150px; width: 500px; background-color: red; padding: 20px; margin: 10px; border: 5px solid blue; overflow-wrap: break-word;">
+        <p style="margin: 0; padding: 0;">This div uses the border-box model and additional internal styling.</p>
+        <pre style="width: 100%; white-space: pre-wrap;">
+style="box-sizing: border-box; height: 150px; width: 500px; background-color: red; padding: 20px; margin: 10px; border: 5px solid blue;"
+        </pre>
+    </div>
+
+    <p>If we inspect the width of the div using border-box value for box-sizing the visual width is 500px matching the width declaration in the styling. The height is also exactly 150px.</p>
+    <p>With the use of border-box instead of <code>padding</code> and <code>border</code> adding to the visual width they subtract from the space available to the content.</p>
+    <p>Using <code>border-box</code> we are defining the size of our box based on where the borders are instead of where the content is which is more intuitive to most people.</p>
+
+    <p>It is common to use a CSS reset file which overrides the default <code>box-sizing</code> property value to be <code>border-box</code>.</p>
+    <pre>
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+    </pre>
+
+    <h2>Padding</h2>
+
+    <p>Padding is our element's inner space between the content and the border.</p>
+    <p>Padding can be applied to all sides or specific sides</p>
+
+<pre>
+.even-padding {
+    padding: 20px;
+}
+    
+.asymmetric-padding {
+    padding-top: 20px;
+    padding-bottom: 40px;
+    padding-left: 60px;
+    padding-right: 80px;
+}
+    
+    /* The same thing, but using ✨ logical properties ✨ */
+.asymmetric-logical-padding {
+    padding-block-start: 20px;
+    padding-block-end: 40px;
+    padding-inline-start: 60px;
+    padding-inline-end: 80px;
+}
+</pre>
+
+    <p>Instead of using px for the spacing <code>em</code> and <code>rem</code> could be used but in most cases <code>px</code> make the most sense as we want our spacing between elements to be fixed and not depend on dynamic font-size.</p>
+    <p>It is also possible to use a <code>%</code> as a value but this is typically not a good idea as the % is based on the elements current width so the padding will shrink/grow with the element's width, even when calculating the top and bottom padding.</p>
+
+    <p>Padding and margin have some shorthands for applying the sizing to the different sides.</p>
+
+    <pre>
+.two-way-padding {
+    padding: 15px 30px;
+}
+    
+.asymmetric-padding {
+    padding: 10px 20px 30px 40px;
+}
+    </pre>
+
+    <p>In two way padding the first unit is applied to the top and bottom, the second unit is applied to the left and right.</p>
+    <p>In asymmetric padding, the unit order goes top, right, bottom, left.</p>
+    <p>If we pass 3 values it goes top, (right and left), bottom.</p>
+
+    <h2>Border</h2>
+
+    <p>Border is consists of three parts</p>
+    <ol>
+        <li>width (3px)</li>
+        <li>style (solid, dotted)</li>
+        <li>color (blue, green)</li>
+    </ol>
+    <p>The properties can be applied individually or in one go as a shorthand, if applied as a shorthand the border will not work unless a border-style is given, without color the default will be black (inherits from the text color) and without width the default will be 3px.</p>
+
+    <pre>
+.box {
+    border: 3px solid hotpink;
+}
+
+.not-good {
+    /* 🙅‍♀️ Won't work – needs a style! */
+    border: 2px pink;
+}
+  
+.good {
+/* 🙆‍♀️ Will produce a black, 3px-thick border */
+border: solid;
+}
+    </pre>
+
+    <p>You can also override a single specific border property if desired.</p>
+
+    <pre>
+&lt;style>
+    .box {
+        width: 50px;
+        height: 50px;
+        border: 10px solid black;
+    }
+
+    .box.one {
+        border-color: deeppink;
+    }
+    .box.two {
+        border-color: gold;
+    }
+    .box.three {
+        border-color: turquoise;
+    }
+&lt;/style>
+
+&lt;div class="box one"></div>
+&lt;div class="box two"></div>
+&lt;div class="box three"></div>
+    </pre>
+
+    <h3>Border Radius</h3>
+    <p><code>border-radius</code> should be considered corner radius.</p>
+    <p>Like padding and margin border-radius accepts a shorthand that applies border to every corner, the order for shorthand also goes top-left, top-right, bottom-right, bottom-left.</p>
+
+    <pre>
+&lt;style>
+    .box {
+        width: 100px;
+        height: 100px;
+        border: 4px solid hotpink;
+        border-radius: 10px 10px 40px 40px;
+    }
+</style>
+    
+&lt;div class="box">&lt;/div>
+    </pre>
+
+    <p>A common use case is using a <code>border-radius</code> of <code>50%</code> which creates an element that appears to be a circle or oval.</p>
+
+    <h3>Border vs. Outline</h3>
+
+    <p>Border and outline have a similarity in that they both add a visible edge to an element.</p>
+    <p>A significant difference is that the outline property has no impact on the layout of the element, it is visually on the screen but has no impact on the size.</p>
+    <p>The outline also appears outside of the border (content -> padding -> border -> outline -> margin)</p>
+    <p>The <code>outline-offset</code> property allows us to add a gap between an element and it's outline.</p>
+    <p>Be careful with changes to outline as it is often used as a focus indicator for people with accessibility issues who are using a keyboard to navigate.</p>
+
+    <h2>Margin</h2>
+
+    <p>Margin sets the amount of space around our element. The CSS for margin is similar to padding.</p>
+
+    <pre>
+.spaced-box {
+    margin: 20px;
+}
+    
+.asymmetrically-spaced-box {
+    margin: 20px 10px;
+}
+    
+.individually-specified-box {
+    margin-top: 10px;
+    margin-left: 20px;
+    margin-right: 30px;
+    margin-bottom: 40px;
+}
+.logical-box {
+    margin-block-start: 20px;
+    margin-block-end: 40px;
+    margin-inline-start: 60px;
+    margin-inline-end: 80px;
+}
+    </pre>
+
+    <h3>Negative Margin</h3>
+
+    <p>Unlike border and padding we can use negative values when defining our margin. Using a negative margin allows us to pull an element outside of its parent.</p>
+
+    <pre>
+&lt;style>
+    main {
+        width: 200px;
+        height: 200px;
+        border: 3px solid;
+    }
+  
+    .box {
+        width: 50%;
+        height: 50%;
+        background: white;
+    }
+
+    .pink.box {
+        border: 3px solid deeppink;
+        margin-top: -32px;
+        margin-left: -32px;
+    }
+&lt;/style>
+    
+&lt;main>
+    &lt;div class="pink box"></div>
+&lt;/main>
+    </pre>
+
+    <p>In the example above the div inside the main should start positioned at the top left of the main element, the top-left corner of each element should be on top of each other. With the -32px margin-top and margin-left the top-left corner of the div is now 32px above the main and to the left.</p>
+
+    <p>Instead of just using a negative margin to escape the boundary of a parent it can also be used to drag a sibling closer.</p>
+
+    <pre>
+&lt;style>
+    main {
+        width: 200px;
+        height: 200px;
+        border: 3px solid;
+    }
+  
+    .box {
+        width: 50%;
+        height: 50%;
+        background: white;
+    }
+
+    .pink.box {
+        margin-bottom: -32px;
+    }
+    .neighbor {
+        margin-left: 16px;
+    }
+&lt;/style>
+    
+&lt;main>
+    &lt;div class="pink box">&lt;/div>
+    &lt;div class="neighbor">&lt;/div>
+&lt;/main>
+    </pre>
+
+    <p>In the above example the 32px of the pink box will be covered by the neighbor box.</p>
+
+    <p>The negative margin can cause a cascading layout shift on all siblings.</p>
+
+    <pre>
+&lt;style>
+    main {
+        width: 200px;
+        height: 200px;
+        border: 3px solid silver;
+    }
+
+    .box {
+        width: 25%;
+        height: 25%;
+        border: 3px solid;
+        background: white;
+    }
+
+    .lifted.box {
+        border-color: deeppink;
+        margin-top: -24px;
+    }
+&lt;/style>
+    
+&lt;main>
+    &lt;div class="lifted box">&lt;/div>
+    &lt;div class="box">&lt;/div>
+    &lt;div class="box">&lt;/div>
+&lt;/main>
+    </pre>
+
+    <h3>Auto margins</h3>
+
+    <p>Margins can be used to centre an element.</p>
+
+    <pre>
+&lt;style>
+    .content {
+        width: 50%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+&lt;/style>
+    
+&lt;main>
+    &lt;section class="content">
+        Hello World
+    &lt;/section>
+&lt;/main>
+    </pre>
+
+    <p>The .content element has a width of 50% of it's parent container. The margin-left and margin-right value of <code>auto</code> means the margin will seek to take up any remaining space. As this is set on both the left and right element the margins split the space equally.</p>
+    <p>This only works when there is an explicit width, otherwise block elements by default already take up the full width using a width of 100% by default.</p>
+    <p>This also will not work for horizontally centreing as the auto value will set the margin to 0px.</p>
+
+    <h2>Flow Layout</h2>
+
+</body>
+</html>

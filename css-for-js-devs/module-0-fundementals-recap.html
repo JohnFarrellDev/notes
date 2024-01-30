@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSS for JS Devs | Fundamentals Recap</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <h1>Fundamentals Recap</h1>
+
+    <h2 id="anatomy-of-a-css-style-rule">
+      <a href="/module-0-fundementals-recap.html#anatomy-of-a-css-style-rule"
+        >Anatomy of a CSS Style Rule</a
+      >
+    </h2>
+
+    <span id="external-link"></span>
+    <a href="https://courses.joshwcomeau.com/css-for-js/00-recap/02-anatomy"
+      >Lesson</a
+    >
+
+    <pre>
+.error-text {
+    color: red;
+}
+</pre
+    >
+
+    <p>Let's break down this snipper of CSS into its core parts.</p>
+    <p>The property being selected here is <code>color</code>.</p>
+    <p>The value assigned to the property is <code>red</code>.</p>
+    <p>Together, these two parts make up a CSS declaration.</p>
+    <p>
+      The selector in this case is <code>.error-text</code> which will select
+      all HTML elements with a class of error-test.
+    </p>
+    <p>
+      The selector and declaration together make up a CSS rule. This rule will
+      select all HTML elements with a class of <code>error-text</code> and set
+      their <code>color</code> to <code>red</code>.
+    </p>
+
+    <h2 id="media-queries">
+      <a href="module-0-fundementals-recap.html#media-queries">Media Queries</a>
+    </h2>
+
+    <span id="external-link"></span>
+    <a
+      href="https://courses.joshwcomeau.com/css-for-js/00-recap/03-media-queries"
+      >Lesson</a
+    >
+
+    <p>
+      To allow our UI to work across a variety of screen sizes from large
+      monitors to phones we sometimes utilize media queries.
+    </p>
+    <p>
+      Using media queries we are able to target certain conditions such as
+      screen sizes for our CSS rules to be dynamically applied.
+    </p>
+    <p>Media queries use the <code>@media</code> syntax such as:</p>
+    <pre>
+@media (max-width: 300px) {
+    .small-only {
+        color: red;
+    }
+}
+</pre
+    >
+    <p>
+      In the above condition the CSS rule is only applied if the screen size is
+      300px or less.
+    </p>
+    <p>
+      Sometimes we will use a media query to hide content on a screen using the
+      display property.
+    </p>
+    <pre>
+.large-screens {
+    display: none;
+}
+
+@media (min-width: 300px) {
+    .large-screens {
+        display: block;
+    }
+    .small-screens {
+        display: none;
+    }
+}
+</pre
+    >
+    <p>
+      In this case if the window is 300px wide or larger the large-screen class
+      display is set to block and the small-screen display is set to none.
+    </p>
+
+    <span id="external-link"></span>
+    <a
+      href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries"
+      >See more media query options to select against</a
+    >
+
+    <h2 id="selectors">
+      <a href="module-0-fundementals-recap.html#selectors">Selectors</a>
+    </h2>
+
+    <span id="external-link"></span>
+    <a
+      href="https://courses.joshwcomeau.com/css-for-js/00-recap/04.01-selectors"
+      >Lesson</a
+    >
+
+    <p>
+      CSS now comes with a vast amount of selectors that can be mixed and have
+      varying specificity.
+    </p>
+    <p>
+      So far we have only seen class based selectors but we can select whole
+      element types, by class, by id, by attribute, by having certain properties
+      and so on.
+    </p>
+
+    <h3 id="pseudo-classes">
+      <a href="module-0-fundementals-recap.html#pseudo-classes"
+        >Pseudo-classes</a
+      >
+    </h3>
+
+    <span id="external-link"></span>
+    <a
+      href="https://courses.joshwcomeau.com/css-for-js/00-recap/04.01-pseudo-classes"
+      >Lesson</a
+    >
+
+    <p>
+      We can use classes that target the <b>state of an element</b> such as if
+      we are hovering a button.
+    </p>
+    <pre>
+button:hover {
+    color: blue;
+}
+</pre
+    >
+    <p>
+      Here when the state of the button is hovered we set the text color to
+      blue.
+    </p>
+    <p>
+      There are a lot of pseudo-classes that exist that can be used.
+      <span id="external-link"></span>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes"
+        >Read about them here.</a
+      >
+    </p>
+    <p>
+      Other coming pseudo-classes include <code>:focus</code> for targeting
+      focussed elements or <code>:checked</code> to target a ticked checkbox.
+    </p>
+    <p>
+      We also commonly use pseudo-classes to target the first or last child
+      using <code>:first-child</code> and <code>:last-child</code>.
+    </p>
+
+    <h3 id="pseudo-elements">
+      <a href="module-0-fundementals-recap.html#pseudo-elements"
+        >Pseudo-elements</a
+      >
+    </h3>
+
+    <span id="external-link"></span>
+    <a
+      href="https://courses.joshwcomeau.com/css-for-js/00-recap/04.02-pseudo-elements"
+      >Lesson</a
+    >
+
+    <p>
+      Pseudo-elements don't target state,
+      <b>they target sub-elements within an element</b>.
+    </p>
+    <p>The syntax is mildly different with 2 colons used too.</p>
+    <pre>
+input::placeholder {
+    color: goldenrod;
+}
+</pre
+    >
+    <p>
+      In this context the placeholder text of the input is being given a
+      <code>color</code> of <code>goldenrod</code>.
+    </p>
+    <p>
+      The pseudo-element selectors target elements in the DOM that we haven't
+      explicitly created with HTML. In the case if placeholder it is just an
+      attribute on the input HTML element.
+    </p>
+    <p>
+      Two of the most common pseudo-element selectors used are
+      <code>::before</code> and <code>::after</code> which allow us to target a
+      hidden element before and after every element. We could just use a span
+      instead before and after the element, the behaviour is the same. Though be
+      careful using <code>::before</code> and <code>::after</code> as depending
+      on screen reading software they may or may not be read out.
+    </p>
+
+    <h3 id="combinators">
+      <a href="module-0-fundementals-recap.html#combinators">Combinators</a>
+    </h3>
+
+    <span id="external-link"></span
+    ><a
+      href="https://courses.joshwcomeau.com/css-for-js/00-recap/04.03-combinators"
+      >Lesson</a
+    >
+
+    <p>
+      We can combine multiple selectors using combinators to be more specific
+      with our selectors.
+    </p>
+    <p>
+      For example we might want all <code>a</code> tags within our navigation to
+      appear one way but then a tags within our article to have a different
+      appearance/behaviour.
+    </p>
+    <pre>
+nav a {
+    color: blue;
+    font-weight: bold;
+}
+</pre
+    >
+    <p>
+      The selector of <code>nav</code> with <code>a</code> space then a means
+      the selector will target all <code>a</code> elements that exist (descended
+      withing) inside of a <code>nav</code> element.
+    </p>
+
+    <p>
+      There are other ways we can target our combinators. We might not want to
+      target all nested descendants but only direct children or in some cases
+      maybe siblings.
+    </p>
+
+    <p>
+      We can use the <code>></code> symbol to target direct children. For
+      example if we had the following HTML:
+    </p>
+    <pre>
+.main-list > li {
+    border: 2px dotted;
+}
+</pre
+    >
+  </body>
+</html>
