@@ -1,0 +1,7 @@
+Require: graceful, spade, money, tele to Falador, Lumbridge and Varrock, 5 saplings
+
+1. Tele Falador, Falador park tree patch
+2. Run to Taverly tree patch
+3. Tele to Lumbridge
+4. Tele to Varrock
+5. Run to spirit tree and go to Gnome Stronghold
