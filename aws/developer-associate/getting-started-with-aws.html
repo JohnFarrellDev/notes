@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>Getting Started With AWS</h1>
+
+    <p>
+      AWS launched when Amazon realized they had all this technical skill and
+      extra computing power and they could offer this as a service to other
+      companies. Over the years this has continuously expanded into the huge
+      offerings now supported by AWS and their services being utilized by almost
+      every large company.
+    </p>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws_history.png"
+    />
+
+    <p>
+      In 2019 AWS had $35 billion in revenue and accounted for 47% of the cloud
+      market. There are over 1,000,000 active users on AWS.
+    </p>
+
+    <p>
+      AWS enables people to build sophisticated scalable applications. The uses
+      apply to a diverse set of industries such as enterprise IT, data storage
+      and back up, big data analytics, website hosting, mobile apps and so on.
+    </p>
+
+    <h2>AWS Global Infrastructure</h2>
+
+    <p>
+      AWS is a global service with servers hosted all around the world, this
+      global service is made of of Regions, Availability Zones, Data Centers,
+      Edge Locations and Points of Presence.
+    </p>
+
+    <span class="external-link"></span>
+    <a href="https://Infrastructure.aws" target="_blank" rel="noreferrer"
+      >Global Infrastructure Map</a
+    >
+
+    <p>
+      We can see that in a continent such as America there are multiple regions
+      such as us-east-1, us-east-2, us-east-3. Within each region there are
+      multiple Availability Zones too.
+    </p>
+
+    <h3>Regions and Availability Zones</h3>
+
+    <p>
+      Most services are region scoped (excluding IAM, Route 53, CloudFront,
+      WAF).
+    </p>
+
+    <p>
+      Choosing which region to launch an application can depend on multiple
+      factors:
+    </p>
+    <ul>
+      <li>Compliance with data governance laws</li>
+      <li>Proximity to customers to reduce</li>
+      <li>latency</li>
+      <li>Now all regions contain every service</li>
+      <li>Pricing can vary between regions</li>
+    </ul>
+
+    <p>
+      Regions consist of AZs. Most regions have 3 AZs, the lowest is 2 and the
+      max is 6. Availability zones are a cluster of logical data centres.
+    </p>
+
+    <p>
+      Each availability zone has independent power, cooling and physical
+      security and is connected via redundant, ultra-low latency networks. The
+      AZs are isolated so one AZ going down should not impact the other AZs. By
+      deploying to multiple AZs services will have greater fault tolerance. AZs
+      belonging in the same region are interconnected with high-bandwidth,
+      low-latency networking. Traffic between AZs is encrypted. The network
+      performance is sufficient to accomplish synchronous replication between
+      AZs. Within the AZ there can be multiple data centres each with their own
+      redundant power, networking and connectivity.
+    </p>
+
+    <h3>Edge Locations - AWS Points of Presence</h3>
+
+    <p>
+      AWS currently have over 400 points of presence, 400+ edge locations + 10
+      regional caches in over 90 cities over 40+ countries.
+    </p>
+    <p>This allows content delivery with ultra low latency.</p>
+
+    <span class="external-link"></span>
+    <a href="https://aws.amazon.com/cloudfront/features/"
+      >CloudFront Global Edge Network</a
+    >
+  </body>
+</html>
