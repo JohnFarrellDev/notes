@@ -103,4 +103,22 @@
       >CloudFront Global Edge Network</a
     >
   </body>
+
+  <h3>Global services vs Regional Services</h3>
+
+  <p>
+    Most services that AWS offer are based in regions, some services for example
+    are not available in all regions. For example EC2 is a region based service,
+    if in eu-west-2 you create an EC2 user data for bootstrapping your image you
+    will not see the bootstrapped image in eu-west-1.
+  </p>
+
+  <p>A few services are global however.</p>
+
+  <ul>
+    <li>Identity and Access Management (IAM)</li>
+    <li>Route 53 (DNS Service)</li>
+    <li>CloudFront (CDN)</li>
+    <li>WAF (Web Application Firewall)</li>
+  </ul>
 </html>
