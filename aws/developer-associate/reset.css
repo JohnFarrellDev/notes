@@ -139,7 +139,7 @@ a:hover {
 
 p {
   margin-bottom: var(--margin-m);
-  max-width: 70ch;
+  max-width: 75ch;
 }
 
 p:last-child {

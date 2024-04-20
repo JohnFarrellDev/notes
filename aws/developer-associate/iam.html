@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>IAM and the AWS CLI</h1>
+
+    <h2>Identity and Access Management</h2>
+
+    <h3>Overview</h3>
+
+    <p>IAM is Identity and Access Management, this is a global service.</p>
+    <p>
+      A root account is created by default but shouldn't be used or shared. Only
+      used to make first account. The root account has too much power so is
+      dangerous to use.
+    </p>
+
+    <p>
+      Users are people within your organisation and can be grouped. Groups only
+      contain users, not other groups. A user can belong to no groups or many
+      groups.
+    </p>
+
+    <p>
+      IAM is to setup permissions for our users. Users or Groups are assigned
+      JSON documents called policies that describe what a user can do. If a user
+      belongs to a group they inherit the policy applied to the group. This
+      makes it easy to manage permissions for multiple people, for example all
+      devs can have RDS read access.
+    </p>
+
+    <p>
+      If a policy is applied directly to a user this is known as an inline
+      policy.
+    </p>
+
+    <p>
+      In AWS you apply the least privilege principle, don't give a user more
+      permission than you know they need.
+    </p>
+
+    <h3>Policy</h3>
+
+    <p>The policy always contains:</p>
+    <ul>
+      <li>A version, normally "2012-10-17"</li>
+      <li>An ID for the policy (optional)</li>
+      <li>Statement, which is an array of statement objects</li>
+    </ul>
+
+    <p>Statement consists of</p>
+    <ul>
+      <li>Sid, Statement ID which is optional</li>
+      <li>Effect, whether the statement allows or denies access</li>
+      <li>Principal, the account or user/role who the policy is applied to</li>
+      <li>Action, list of actions the policy allows or denies</li>
+      <li>Resource, list of resources to which the actions applied to</li>
+      <li>
+        Condition, conditions for when the policy is in effect (optional), can
+        require MFA or request coming from an IP range
+      </li>
+    </ul>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/iam-permission-policy.png"
+    />
+
+    <h3>Password policy</h3>
+
+    <ul>
+      <li>Can enforce strong passwords (length, character types)</li>
+      <li>Allow all IAM users to change their own passwords</li>
+      <li>Allow password expiration to exist</li>
+      <li>Prevent password reuse</li>
+    </ul>
+
+    <h3>Multi-Factor Authentication (MFA)</h3>
+    <p>
+      You want to definitely protect root account and hopefully all IAM users
+      MFA consists of a password and a device you own such as a phone with an
+      authenticator app
+    </p>
+
+    <p>MFA options are:</p>
+    <ul>
+      <li>Virtual authenticator (google or authy, authy is multi-device)</li>
+      <li>Universal 2nd Factor Security key such as YubiKey</li>
+      <li>Hardware key fob MFA device</li>
+    </ul>
+
+    <h3>AWS Access</h3>
+    <p>Can access AWS in three ways:</p>
+    <ul>
+      <li>AWS Console (browser), using password + MFA</li>
+      <li>AWS Command Line interface, require access key</li>
+      <li>AWS Software Development Key (SDK), protected by access keys</li>
+    </ul>
+
+    <p>The AWS CLI is built on top of the AWS python SDK called boto3.</p>
+    <p>Users should not ever share their access keys.</p>
+
+    <h3>AWS CloudShell</h3>
+
+    <p>
+      Within the AWS console you can enter CloudShell. CloudShell is essentially
+      a terminal within AWS that gives you the same functionality as the AWS
+      CLI.
+    </p>
+
+    <p>
+      Within CloudShell you can create files, these files will persist between
+      CloudShell instances.
+    </p>
+
+    <p>You can also download/upload files to CloudShell.</p>
+
+    <h3>IAM Roles for Services</h3>
+    <p>
+      Some AWS services will perform actions on our behalf. Our services require
+      permissions just like users do. To provide permissions to an AWS service
+      we utilize IAM Roles.
+    </p>
+    <p>
+      A basic example would be that an EC2 instance requires access to
+      information from AWS.
+    </p>
+
+    <h3>IAM Security Tools</h3>
+    <p>
+      IAM Credentials Report (account level), a report that lists all your
+      account's users and the status of their credentials. Can download a CSV
+      with all our users and a bunch of data such as when password last updated,
+      if MFA configured etc.
+    </p>
+    <p>
+      IAM Access Advisor (user level), access advisor shows the service
+      permissions granted to a user and when those services were last accessed.
+      This information can help update policies, useful for least privilege
+      principle.
+    </p>
+
+    <h3>IAM Best Practices</h3>
+    <ul>
+      <li>Only use root account to set up first AWS account</li>
+      <li>One AWS user per real user</li>
+      <li>Never share access keys</li>
+      <li>Assign users to group and assign permissions to groups</li>
+      <li>Enforce a strong password policy and MFA</li>
+      <li>Create and use Roles for giving permissions to AWS services</li>
+      <li>Use access keys for programmatic access (CLI/SDK)</li>
+      <li>
+        Audit permissions using the IAM Credentials Report and IAM Access
+        Advisor
+      </li>
+    </ul>
+
+    <h3>Shared Responsibility Model for IAM</h3>
+    <p>
+      This is what AWS is responsible for and what the user is responsible for.
+    </p>
+    <p>
+      AWS is responsible for the infrastructure, configuration and vulnerability
+      analysis and compliance validation.
+    </p>
+    <p>
+      The user is responsible for enabling MFA on all acount, user groups and
+      permissions are applied correctly, ensuring access is all valid.
+    </p>
+  </body>
+</html>
