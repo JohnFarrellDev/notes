@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>EC2 Fundamentals</h1>
+
+    <h2>What is EC2</h3>
+
+    <h3>EC2 Basics</h3>
+
+    <p>
+      EC2 stands for Elastic Compute Cloud (infrastructure as a service) and is
+      one of the most popular services
+    </p>
+    <p>One of the most popular AWS offerings</p>
+    <p>EC2 mainly consists of:</p>
+
+    <ul>
+      <li>Renting virtual machines (EC2)</li>
+      <li>Storing data on virtual drives (EBS)</li>
+      <li>Distributing load across machines (ELB)</li>
+      <li>Scaling the services using auto-scaling group (ASG)</li>
+    </ul>
+
+    <p>
+      When you stop and restart an EC2 instance you get assigned a new IPv4
+      address.
+    </p>
+
+    <p>
+        When an EC2 instance boots up for the first time it will run a script called User Data, this is used to bootstrap the instance.
+      </p>
+
+    <h3>EC2 Sizing and Configuration Options</h3>
+
+    <ul>
+      <li>Operating systems - linux, windows, mac os</li>
+      <li>How much CPU</li>
+      <li>How much RAM</li>
+      <li>How much storage space (network attached or instance)</li>
+      <li>Network card, speed of the card and public IP address</li>
+      <li>Firewall rules - security groups</li>
+      <li>Bootstrap script</li>
+    </ul>
+
+    <h3>EC2 User Data</h3>
+
+    <p>
+      Boot strapping means running a script on launch. The bootstrap script can
+      automate some task we want to run whenever launching an instance. Could be
+      installing updates, installing software, downloading files, anything
+      really.
+    </p>
+    <p>The user data script runs as a root user.</p>
+    <p>Adding a large script will mean launching an instance takes longer.</p>
+  
+    <h3>EC2 Instance Types</h3>
+
+    <p>Different EC2 instances should be used for different contexts, they are optimized for different situations.</p>
+    <span class="external-link"></span>
+    <a href="https://aws.amazon.com/ec2/instance-types/" target="_blank">Instance Types</a>
+    <p>The instance types are.</p>
+    <ul>
+        <li>General Purpose</li>
+        <li>Compute Optimized</li>
+        <li>Memory Optimized</li>
+        <li>Accelerated Computing</li>
+        <li>Storage Optimized</li>
+    </ul>
+
+    <p>General purpose provide a balance of compute, memory and networking resources. These instances are ideal for web servers and code repositories.</p>
+    <p>Compute optimized instances are ideal for applications processing batch workloads, media transcoding, high performance web-servers, high performance computing, scientific modelling, dedicated gaming servers, server engines, machine learning inference and anything that is compute intensive.</p>
+    <p>Memory optimized instances are designed for delivering fast performance for workloads that process large data sets in memory.</p>
+    <p>Accelerated computing utilizes GPUs for hardware acceleration in functions such as floating point number calculations, graphic processing, data pattern matching, often used in machine learning.</p>
+    <p>Storage optimized are for instances that require high read and write access to large data sets on local storage. Optimized to write tens of thousands of low-latency, random I/O operations per seconds to their applications.</p>
+    <p>Within each instance type there are many options to purchase from, the instance types vary based on the hardware being provided such as the amount of vCPUs provided and the memory.</p>
+
+    <h3>Creating and accessing an EC2</h3>
+    <p>Within the AWS console you can simple create an EC2 instance by selection from the options. To access the instance from our local machine via SSH we need a .pem key-pair file and for our security group to allow our access.</p>
+
+    <h2>Security and Connecting to your Instance</h2>
+
+    <h3>Security Group Overview</h3>
+
+    <p>Security groups are a fundamental part of network security in AWS. They control how traffic is allowed into or out of or EC2 instances. Security group only contain allow rules. Security group rules reference by IP or by security group.</p>
+    <p>Security groups act as a firewall on our instances. They regulate:</p>
+
+    <ul>
+        <li>Access to ports</li>
+        <li>Authorised IP ranges (IPv4 and IPv6)</li>
+        <li>Control of inbound network</li>
+        <li>Control of outbound network</li>
+    </ul>
+
+    <p>Security groups can be attached to multiple instances. An instance can have multiple security groups. Security groups are region locked. Security groups live outside the instance, if the security group blocks the request the instance never knows about the incoming request. It is good to maintain one separate security group for SSH access.</p>
+
+    <p>If your application is not accessible and gets a time out error it is likely a security group issue. If your application gives a connection refused error then it is an application level error. All inbound traffic is blocked by default. All outbound traffic is authorised by default.</p>
+
+    <h3>Ports to Know</h3>
+
+    <ul>
+        <li>SSH - port 22</li>
+        <li>FTP - port 21</li>
+        <li>SFTP - port 22</li>
+        <li>HTTP - port 80</li>
+        <li>HTTPS - port 443</li>
+        <li>RDP (remote desktop protocol for windows) - port 3389</li>
+    </ul>
+
+    <h3>SSHing Into Your Instance</h3>
+
+    <p>SSHing into an instance allows you to control an instance via the command line.</p>
+    <p>SSH -i &lt;file-name.pem&gt; ec2-user@&lt;ipv4-address-for-ec2-instance&gt;</p>
+    <p>The .pem file initially has permissions of 0644 which is too open.</p>
+    <p>To fix this chmod 0400 the pem file. (this only allows the owner to read the file)</p>
+
+    <h3>EC2 Instance Connect</h3>
+    <p>Not in every region yet.</p>
+    <p>Connects you to the instance from within the AWS console by creating a temporary key file to SSH you in. As instance connect still relies on SSH if your security group does not allow SSH  (port 22 open) you can not use instance connect.</p>
+
+    <h3>EC2 Instance Roles</h3>
+    <p>Never enter your IAM access keys directly into an instance. These are meant to belong to an individual user, if entered into an instance other people may access your keys.</p>
+    <p>You should instead use IAM roles which provide policies to the instance for communicating with AWS.</p>
+
+    <h2>EC2 Types</h2>
+
+    <ul>
+        <li>On-Demand Instances: short workload with predictable pricing</li>
+        <li><p>Reserved instance:</p>
+            <ul>
+                <li>Reserved instances: long workload</li>
+                <li>Convertible reserve instances: long workload with a flexible instance (such as instance size being changed)</li>
+                <li>Scheduled reserved instances: for example every Thursday between 3 and 6pm</li>
+            </ul>
+        </li>
+        <li>Spot instances: short workload but cheap, can lose instance so less reliable</li>
+        <li>Dedicated hosts: book an entire physical server, control instance placement</li>
+    </ul>
+
+    <h3>EC2 On Demand</h3>
+
+    <li>
+        <p>Pay for what you use</p>
+        <ul>
+            <li>On linux billed per second with a minium of 1 minute</li>
+            <li>All other operating systems billing is done hourly</li>
+        </ul>
+    </li>
+    <li>Has the highest cost but no upfront payment</li>
+    <li>No long term commitment</li>
+    <li>Recommended for short term and un-interrupted work loads</li>
+
+    <h3>EC2 Reserved</h3>
+
+    <ul>
+        <li>Upto 75% discount</li>
+        <li>Reserve for either 1 year or 3 years, 3 years is a much larger discount</li>
+        <li>Purchase can be done monthly, partially upfront or all upfront, all upfront is the biggest discount</li>
+        <li>Have to reserve a specific instance type</li>
+        <li>Recommended if application is in a steady state such as a database</li>
+    </ul>
+
+    <h3>Convertible Reserved Instance</h3>
+    <ul>
+        <li>Can change the EC2 instance type</li>
+        <li>Up to a 54% discount</li>
+    </ul>
+
+    <h3>Scheduled Reserved Instance</h3>
+    <ul>
+        <li>
+            Launch within a specific time window for a regular period
+        </li>
+    </ul>
+
+    <h3>Spot Instances</h3>
+    <ul>
+        <li>Up to 90% discount compared to on-demand</li>
+        <li>Can lose instance at any time if price you're willing to pay is less than the spot price</li>
+        <li>Spot price fluctuates depending on demand</li>
+        <li>Most cost efficient instance in AWS</li>
+        <li>Useful for workloads resilient to failure such as batch job, data analysis, image processing, distributed workload</li>
+        <li>Workloads with a flexible state and end time</li>
+        <li>DO NOT use for critical jobs or databases</li>
+    </ul>
+
+    <h3>EC2 Dedicated Hosts</h3>
+    <ul>
+        <li>A dedicated host is a physical server with EC2 instance capacity fully dedicated to you.</li>
+        <li>Dedicated hosts can help you address <b>compliance requirements</b> and reduce costs by allowing you to use your existing <b>server-bound software licenses</b></li>
+        <li>Allocated to your account for a 3 year reservation period</li>
+        <li>More expensive</li>
+    </ul>
+
+    <h3>EC2 Dedicated Instance</h3>
+    <ul>
+        <li>Instance running on hardware dedicated to you</li>
+        <li>May share hardware with other instances in same account</li>
+        <li>No control or access to underlying hardware</li>
+    </ul>
+
+    <h3>Choosing a Purchase Option</h3>
+    <ul>
+        <li>On demand, need something now that we want, happy to pay full price</li>
+        <li>Reserved, planning ahead so get a discount, good for databases or stable applications</li>
+        <li>Spot instance, lower price when demand is low, low fault tolerance so only useful for certain types of work</li>
+        <li>Dedicated host, most expensive but sometimes you need to control the server fully</li>
+    </ul>
+</body>
+</html>
