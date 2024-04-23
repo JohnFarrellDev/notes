@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>Elastic Load Balancing and Auto Scaling Groups</h1>
+
+    <h2>Scalability and High Availability</h2>
+    <p>
+      Scalability means that an application can handle greater loads by adapting
+      to the current requirements.
+    </p>
+    <p>Scalability is linked but different from availability.</p>
+    <p>
+      Two types of scalability exist, horizontal (also called elasticity) and
+      vertical. Vertical scalability means increasing the size/performance of
+      the instance, go from t2.micro to t2.large EC2 instance. Vertical
+      scalability is common for non distributed systems such as a database, RDS,
+      elasticache. Horizontal scalability means increasing the number of
+      instances for your application, this could mean adding more instances.
+      This implies a distributed system, it is common for web applications and
+      modern applications.
+    </p>
+    <p>
+      Horizontal scaling when creating new instances is called scaling out,
+      reducing instances is called scaling in.
+    </p>
+    <p>Auto scaling groups are multi AZ, load balances are multi AZ.</p>
+    <p>
+      Horizontal scaling can increase our availability, by ensuring our
+      instances our in different AZs if one AZ goes down our service can
+      continue running.
+    </p>
+
+    <h2>Load Balancing</h2>
+    <p>
+      A load balancer is a server/s that forwards traffic to downstream servers,
+      spreads load across multiple downstream instances and exposes a single DNS
+      to your application.
+    </p>
+    <p>
+      Allows for failures of downstream instances to be seamlessly handled. The
+      load balancer will do regular health-check of your downstream instances.
+    </p>
+    <p>Load balancers will provide SSL termination (HTTPS) for our websites.</p>
+    <p>Load balancers can enforce stickiness using cookies.</p>
+    <p>Load balancers provide high availability across available zones.</p>
+    <p>
+      Load balancers allow us to separate public traffic from private traffic.
+    </p>
+    <p>An ELB is a managed load balancer:</p>
+    <ul>
+      <li>AWS guarantees that it works</li>
+      <li>AWS maintains upgrades</li>
+      <li>AWS provides a few configuration options</li>
+      <li>Costs less and is less effort</li>
+      <li>
+        Integrates with other AWS services such as - EC2, Auto Scaling Groups,
+        ECS, AWS Certificate Manager, CloudWatch, Route 53, AWS WAF
+      </li>
+    </ul>
+
+    <h3>Health Checks</h3>
+    <p>
+      Health checks are a way to determine if an EC2 instance is working
+      correctly, this enables load balancers to know if they should forward
+      traffic to the service.
+    </p>
+    <p>
+      Health check is done by calling a port and a route, typically /health, if
+      the response is not 200 then the application is not working properly.
+    </p>
+
+    <h3>Types of Load Balancers on AWS</h3>
+    <p>AWS has 4 kinds of managed load balancers:</p>
+    <ul>
+      <li>
+        Classic load balancer (v1 - old generation) - 2009, handles HTTP, HTTPS,
+        TCP, SSL. Has been deprecated by AWS.
+      </li>
+      <li>
+        Application load balancer (v2 - new generation) - 2016, handles HTTP,
+        HTTPS, WebSocket
+      </li>
+      <li>
+        Network load balancer (v2 - new generation) - 2017, handles TCP, TLS,
+        UDP
+      </li>
+      <li>
+        Gateway load balancer - 2020, operates at layer 3, network layer, IP
+        protocol, won't be required in this section
+      </li>
+    </ul>
+    <p>
+      Some load balancers can be setup as internal (private IP) or external
+      (public facing IP)
+    </p>
+
+    <h3>Load Balancer Security Group</h3>
+    <p>
+      A public facing load balancer is going to be interacted with by the
+      internet so must allow HTTP and HTTPS traffic from anywhere. The
+      downstream EC2 instance can then only allow inbound traffic from the load
+      balancer so is not directly accessible by the public.
+    </p>
+
+    <h3>Application Load Balancer (v2)</h3>
+    <p>
+      The Application load balancing supports HTTP/HTTPS (Layer 7). Can load
+      balance to multiple applications on the same machine (e.g containers). The
+      ALB has support for HTTP/2, HTTPS and WebSockets and it cna redirect HTTP
+      requests to HTTPS.
+    </p>
+    <p>
+      It sorts rule based routing tables to different target groups, for
+      example:
+    </p>
+    <ul>
+      <li>Can route based on path in url for example /users vs /posts</li>
+      <li>
+        Can route based on hostname in URL one.example.com vs two.example.com
+      </li>
+      <li>Can route based on query string headers</li>
+    </ul>
+    <p>
+      As a result are a great fit for micro services and container based
+      applications. Has a port mapping feature to redirect a dynamic port in ECS
+      (elastic container service).
+    </p>
+    <p>
+      The classic load balancer can only handle one application, application
+      load balancer can have many applications.
+    </p>
+    <p>The target group for an ALB can be:</p>
+    <ul>
+      <li>EC2 instances (can be managed by an ASG) - HTTP</li>
+      <li>ECS instances (managed by ECS) - HTTP</li>
+      <li>Lambda functions - HTTP request is translated to a JSON event</li>
+      <li>IP addresses (must be private IPS)</li>
+    </ul>
+    <p>
+      The ALB can route to multiple target groups, health checks are done at the
+      target group level.
+    </p>
+    <p>With an ALB you can get a fixed hostname.</p>
+    <p>
+      As the request to the application is forward through a load balancer they
+      don't see the client's IP directly, the true IP of the client is inserted
+      into the X-Forwarded-For header, there is also X-Forwarded-Port and
+      X-Forwarded-Proto.
+    </p>
+
+    <h3>Network Load Balancer (v2)</h3>
+    <p>
+      The NLB has really high performance, can handle millions of requests per
+      second with latency of around 100ms compared to 400ms for the ALB.
+    </p>
+    <p>
+      The NLB allows the forwarding of TCP and UDP traffic (layer 4). The NLB
+      only has one static IP per AZ which can be helpful for whitelisting one
+      specific IP. IP can be assigned using Elastic IP.
+    </p>
+    <p>
+      Typical used when extreme performance is required when dealing with TCP or
+      UDP traffic.
+    </p>
+    <p>Target groups can be:</p>
+    <ul>
+      <li>EC2 instances</li>
+      <li>Private IP addresses</li>
+      <li>
+        ALB - used for getting fixed IP address but then ALB has rules around
+        handling the HTTP request such as path name routing.
+      </li>
+      <li>Health check supports the TCP, HTTP and HTTPS protocols.</li>
+    </ul>
+
+    <h3>Gateway Load Balancer</h3>
+    <p>
+      To deploy, scale and manage a fleet of 3rd party network virtual
+      appliances in AWS. If you want all traffic in your network to go through
+      some firewall intrusion, packet inspection etc.
+    </p>
+    <p>Operates at layer 3 (network layer) - IP packets.</p>
+    <p>The GWLB combines the following functions:</p>
+    <ul>
+      <li>Transparent network gateway - single entry/exit for all traffic</li>
+      <li>Load balancer - distribute traffic to your virtual appliances</li>
+    </ul>
+    <p>The GWL uses the GENEVE protocol on port 6081.</p>
+    <p>Target groups are EC2 instances or private IPs.</p>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-glb-traffic.png"
+    />
+
+    <h2>Sticky Sessions (Session Affinity)</h2>
+    <p>
+      It is possible to make sessions sticky, the same client to the load
+      balancer gets redirected to the same instance each time, works for the
+      CLB, ALB and NLB.
+    </p>
+    <p>Implemented using a cookie set by the developer.</p>
+    <p>
+      Allows the user to maintain their session data by being connected to the
+      same backend instance.
+    </p>
+    <p>Can create an imbalanced load on our backend instances though.</p>
+    <p>There are two types of cookies, application or duration:</p>
+    <ul>
+      <li>
+        <p>Application-based cookie:</p>
+        <ul>
+          <li>Use a custom cookie</li>
+          <li>Generated by the target</li>
+          <li>Can include any custom attributes required by the application</li>
+          <li>
+            Cookie name must be specified individually for each target group
+          </li>
+          <li>
+            Cannot use AWSALB, AWSALBAPP or AWSALBTG as these are already
+            reserved by ELB
+          </li>
+        </ul>
+      </li>
+
+      <li>
+        <p>Application cookie:</p>
+        <ul>
+          <li>Generated by the load balancer</li>
+          <li>Cookie name is AWSALBAPP</li>
+        </ul>
+      </li>
+
+      <li>
+        <p>Duration based:</p>
+        <ul>
+          <li>Cookie generated by the load balancer</li>
+          <li>Cookie name is AWSALB for ALB or AWSELB for CLB</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>Cross-Zone Load Balancing</h2>
+    <p>
+      Cross zone load balancing means the load is shared equally across EC2
+      instances in different availability zones. For an ALB cross zone load
+      balancing is always on. For an NLB this is diabled by default but can be
+      enabled at a cost. For the CLB is enabled by default if created in
+      console, disabled by default in created via CLI, no charge if enabled.
+    </p>
+
+    <h2>SSL/TLS Certificates</h2>
+    <p>
+      This allows traffic between the client and the load balancer to be
+      encrypted in transit. SSL refers to Secure Sockets Layer, TLS refers to
+      Transport Layer Security. TLS is the newer version and most certificates
+      are TLS even though people still say SSL. SSL certificates have an
+      expiration data you set and must be renewed regularly.
+    </p>
+    <p>
+      Load balancer uses an X.509 certificate (SSL/LS certificate). Can manage
+      these certificates using ACM (AWS certificate manager). Can also create
+      your own certificates and upload them to ACM.
+    </p>
+    <p>
+      You must specify a default certificate, can add an optional list of
+      certificates to support multiple domains.
+    </p>
+    <p>
+      Clients use SNI (Server Name Indication) to specify the hostname they want
+      to reach, SNI Solves the problem of loading multiple SSL certificates onto
+      one web server (to serve multiple websites).
+    </p>
+    <p>Can set a security policy to support older versions of SSL.</p>
+    <p>
+      Newer SNI protocol requires the client to indicate the hostname of the
+      target server for the initial SSL handshake, the server then finds the
+      correct certificate (or returns the default one). This only works with ALB
+      and NLB (not CLB).
+    </p>
+
+    <h2>Connection Draining/Registration Delay</h2>
+    <p>
+      Called connection draining on CLB, referred to as reregistration delay for
+      ALB and NLB.
+    </p>
+    <p>
+      When an EC2 instance is de-registering we want to stop sending requests to
+      that instance. We want to ensure there is enough time to complete
+      "in-flight requests" while the de-registering is occurring.
+    </p>
+    <p>
+      By default this delay lasts 300 seconds but can be set from 1 second to
+      3,600 seconds, choose a time based on how long the requests tend to live
+      for.
+    </p>
+
+    <h2>Auto Scaling Groups (ASGs)</h2>
+    <p>
+      Automatically scale in our out services based on how much load a service
+      is receiving.
+    </p>
+    <p>
+      ASG automates this by setting minimum/maximum number of instances + a
+      desired number of instances, then based on criteria we can set such as CPU
+      usage we scale our or in our instances.
+    </p>
+    <p>
+      ASGs combined well with load balancers as new instances are automatically
+      registered with the load balancer. The ASG will also recreate a new
+      instance if a previous one gets terminated due to a failed health check.
+    </p>
+    <p>ASGs have a launch template:</p>
+    <ul>
+      <li>AMI + instance type</li>
+      <li>EC2 user data</li>
+      <li>EBS volumes</li>
+      <li>Security groups</li>
+      <li>SSH key pair</li>
+    </ul>
+    <p>
+      We can also define network + subnet information and various scaling
+      policies.
+    </p>
+
+    <h3>Auto Scaling Alarms</h3>
+    <p>Our ASG can scale in or out based on various CloudWatch alarms.</p>
+    <p>Scaling rules include:</p>
+    <ul>
+      <li>Target average CPU usage</li>
+      <li>Number of requests on ELB instance</li>
+      <li>Average network in</li>
+      <li>Average network out</li>
+      <li>Custom metrics such as number of connected users</li>
+      <li>Scale based on a schedule</li>
+    </ul>
+    <p>IAM roles attach to the ASG which apply to the underlying resources.</p>
+
+    <h3>Scaling Policies</h3>
+    <p>
+      We can set up various scaling policies. We can use different policies for
+      scaling in and out.
+    </p>
+    <p>
+      Target tracking scaling - easiest to set up, simple such as maintain 50%
+      CPU usage.
+    </p>
+    <p>
+      Step scaling - When a CloudWatch alarm is triggered for CPU usage over 70%
+      add a new instance, when a CloudWatch alarm is triggered for CPU usage
+      less than 30% remove an instance.
+    </p>
+    <p>Scheduled action - at 5pm on Friday increase capacity to 10.</p>
+    <p>
+      Predictive scaling - continuously forecast load and schedule scaling
+      ahead, utilizes ML.
+    </p>
+    <p>Metrics to scale on:</p>
+    <ul>
+      <li>CPU utilization</li>
+      <li>Requests per EC2</li>
+      <li>Average network in/out</li>
+      <li>Custom CloudWatch metrics</li>
+    </ul>
+    <p>
+      After adding/removing instances there is a scaling cool-down of 300
+      seconds by default, this is to allow for new metrics to settle.
+    </p>
+
+    <h3>Instance Refresh</h3>
+    <p>
+      Want to update an entire ASG due to a new launch template to re-create all
+      EC2 instances. For this we can use the native features of Instance
+      Refresh.
+    </p>
+    <p>
+      We set a minimum healthy X%, this way the ASG will only terminate (100-X)%
+      at a time and replace these instances with the new template.
+    </p>
+  </body>
+</html>
