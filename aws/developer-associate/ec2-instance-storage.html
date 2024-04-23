@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>EC2 Instance Storage</h1>
+
+    <h2>EBS Overview</h2>
+
+    <h3>Basic Overview</h3>
+    <p>
+      Elastic Block Store is a network drive you can attach to your instance
+      while they run that allows your instances to persist data after
+      termination. As it is a network drive, not a physical drive, there is a
+      little latency fetching data from EBS.
+    </p>
+    <p>
+      An EBS volume can only be mounted to one instance at a time (for this
+      exam, technically some have a multi-attach feature), an instance can have
+      multiple EBS volumes. An EBS volume can be detached from one instance then
+      attached to a new instance, this makes it useful for failover situations.
+    </p>
+    <p>
+      The volume is bound to a specific availability zone, can only attach to an
+      instance in the same availability zone. You can move a volume across AZs
+      by snapshotting the volume.
+    </p>
+    <p>
+      The free tier gives us 30GB of free EBS storage using general SSD storage.
+    </p>
+    <p>
+      EBS volumes have a provisioned capacity/IOPS and size in GBs, you can
+      increase the capacity over time (size or performance).
+    </p>
+    <p>
+      An EBS volume can have a delete on termination attribute, controls EBS
+      behaviour when instance is terminated. By default the root volume is
+      deleted for an instance but this is configurable.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-az-storage.png"
+    />
+
+    <h3>Snapshots</h3>
+    <p>
+      You can make a backup of your EBS volume at a point in time, it is not
+      necessary to detach volume to do snapshot but it is recommended.
+    </p>
+    <p>
+      Can copy snapshots across AZs or regions. This can be useful for disaster
+      recovery situations such as if a whole AZ goes down.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-region-transfer.png"
+    />
+    <p>
+      EBS snapshot archive allows snapshots to be stored in an "archive tier"
+      that is up to 75% cheaper, takes from 24 to 72 hours to restore the
+      archive.
+    </p>
+    <p>
+      There is a recycle bin for EBS snapshots, setup rules to retain delete
+      snapshots, cna be retained from 1 day to 1 year.
+    </p>
+    <p>
+      Fast snapshot restore allows us to force full initialization of snapshot
+      to have no latency on first user but costs a lot more. Very helpful if the
+      snapshot is big.
+    </p>
+
+    <h2>AMI</h2>
+    <h3>Overview</h3>
+    <p>AMI = Amazon Machine Image.</p>
+    <p>AMI are a customization of an EC2 instance.</p>
+    <ul>
+      <li>You can add your own software, operating system, monitoring etc.</li>
+      <li>
+        Can create a faster boot time than using user data, software is
+        pre-packaged.
+      </li>
+    </ul>
+    <p>AMIs are built for a region but can be copied across regions.</p>
+    <p>
+      AMIs exist from Amazon (such as the Amazon linux AMI) but you can make
+      your own AMIs or buy AMIs from the AWS marketplace.
+    </p>
+
+    <h3>EC2 Instance storage</h3>
+    <p>
+      EBS volumes are network drives with good but limited performance, if you
+      need a higher performance hardware disk use EC2 instance store.
+    </p>
+    <p>Instance storage will provide better IOPS and better throughput.</p>
+    <p>
+      Read IOPS can max out at 2 million and 1.6 million write for the most high
+      performance EC2 instance. Maxed out GP2 EBS can only reach about 16,000
+      IOPS.
+    </p>
+    <p>
+      EC2 instance store less their storage if the instance stops, the data is
+      lost as storage is ephemeral.
+    </p>
+    <p>
+      This is fine if the instance storage just being used as a buffer, cache or
+      for temporary content.
+    </p>
+    <p>
+      There is a risk of data loss if the hardware fails, any backup or
+      replication is the developers responsibility.
+    </p>
+
+    <h2>EBS Volume Types</h2>
+    <p>EBS volumes come in 6 types:</p>
+    <ul>
+      <li>
+        GP2/GP3 (SSD) - General purpose SSD volumes that balance price and
+        performance for most workloads
+      </li>
+      <li>
+        IO1/IO2 (SSD) - Highest performance SSD volume for very important low
+        latency and high-throughput workloads
+      </li>
+      <li>
+        ST1 (HHD) - Low cost HDD designed for frequently accessed,
+        throughput-intensive workloads where latency is less important
+      </li>
+      <li>
+        SC1 (HDD) - Lowest cost HDD volume designed for less frequently accessed
+        workloads
+      </li>
+    </ul>
+    <p>EBS volumes are characterized by size, throughput and IOPS.</p>
+    <p>Only GP1, GP2, IO1 and IO2 can be used as root volumes, all are SSDs.</p>
+
+    <h3>General Purpose SSD</h3>
+    <p>Cost effective with low latency.</p>
+    <p>
+      Used in system root volumes, virtual desktops, development and test
+      environments.
+    </p>
+    <p>Have a storage size of 1 GiB - 16 TiB.</p>
+    <p>GP3</p>
+    <ul>
+      <li>Baseline of 3,000 IOPS and throughput of 125 MiB/s</li>
+      <li>
+        Can increase IOPS up to 16,000 and throughput to 1000 MiB/s
+        independently
+      </li>
+    </ul>
+    <p>GP2</p>
+    <ul>
+      <li>Small GP2 volumes can burst IOPS to 3,000</li>
+      <li>Size of the volume and IOPS are linked, max IOPS is 16,000</li>
+      <li>3 IOPS per GB, at 5,334 GB we are at the max IOPS</li>
+    </ul>
+
+    <h3>Provisioned IOPS (PIOPS) SSD</h3>
+    <p>
+      For critical application that require sustaining very high IOPS over
+      16,000.
+    </p>
+    <p>Often important for database workloads.</p>
+    <p>Also supports EBS multi-attach.</p>
+    <p>
+      IO1 has storage from 4 Gib to 16, can increase the max IOPS to 64,000 for
+      Nitro EC2 and 32,000 for other. Can increase the PIOPS independently from
+      the storage size.
+    </p>
+    <p>
+      IO2 has more durability and more IOPS per GiB at the same price as IO1.
+    </p>
+    <p>
+      IO2 can store data from 5 GiB to 64 TiB, has sub-millisecond latency with
+      a max PIOPS of 256,000 with an IOPS:GiB ratio of 1,000:1.
+    </p>
+
+    <h3>HDD Volumes</h3>
+    <p>Cannot be a boot volume.</p>
+    <p>Size can range from 125 Mib to 15 TiB.</p>
+    <p>Use case for throughput optimized HDD (ST1):</p>
+    <ul>
+      <li>Big data</li>
+      <li>Data warehouses</li>
+      <li>Log processing</li>
+      <li>Max throughput of 500 MiB/s, max IOPS of 500</li>
+    </ul>
+
+    <p>Use case for cold HDD (SC1):</p>
+    <ul>
+      <li>Infrequently accessed data</li>
+      <li>Optimism for cost</li>
+      <li>Max throughput of 250 MiB/s, max IOPS of 250.</li>
+    </ul>
+
+    <h2>EBS Multi-Attach</h2>
+    <p>
+      Multi-attach only applies to IO1 and IO2 volumes. Allows attaching the
+      same volume to multiple instances in the same AZ. This is limited to 16
+      instances at a time.
+    </p>
+    <p>
+      Each instance will have read and write permissions. The applications must
+      manage concurrent write operations.
+    </p>
+    <p>Muse use a cluster-aware filet system such as EX4 not XFS.</p>
+    <p>
+      Use cases include higher application availability in clustered linux
+      applications such as Teradata.
+    </p>
+
+    <h3>EFS (Elastic File SYstem)</h3>
+    <p>
+      EFS is a managed NFS (network file system) that can be mounted to many EC2
+      instances. These instances can exist in different AZs.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/efs-multi-az-connect.png"
+    />
+    <p>
+      EFS is highly available and scalable but more expensive, about 3x the gp2
+      cost. Cost is based on pay per usage.
+    </p>
+    <p>Use cases include:</p>
+    <ul>
+      <li>Content management</li>
+      <li>Web serving</li>
+      <li>Data sharing</li>
+      <li>Wordpress</li>
+    </ul>
+    <p>EFS uses the NSFv4.1 protocol.</p>
+    <p>
+      To access EFS a security group must grant permission. EFS is only
+      compatible with linux based AMIs.
+    </p>
+    <p>Encryption at rest can be enabled at rest using KMS.</p>
+    <p>EFS uses a POSIX (linux based) file system.</p>
+    <p>
+      The file system scales automatically and can grow to petabytes if
+      required, the throughput is 10+ GB/s.
+    </p>
+    <p>
+      There are two EFS performance modes which are set at EFS creation time, by
+      default the performance mode is general purpose but you can choose max
+      I/O.
+    </p>
+    <p>General purpose has low latency so is good for web-servers or CMS.</p>
+    <p>
+      Max I/O has higher latency but better throughput and is highly parallel
+      which is good for big data or media processing.
+    </p>
+    <p>There are also two EFS throughput modes:</p>
+    <ul>
+      <li>Bursting up to 50Mib/s per TB of storage + 100 MiB/s</li>
+      <li>
+        Can manually set a provisioned throughput independent of storage size
+      </li>
+    </ul>
+    <p>
+      Storage tiers is a lifecycle management feature, after N days can move
+      file into infrequent access which has lower storage cost. There is a cost
+      to change the file storage tier. There is also a cost to retrieve from the
+      infrequent access tier but storage is cheaper. A lifecycle policy is
+      required to move the files such as after not being accessed for 60 days
+      move the file into infrequent access.
+    </p>
+    <p>
+      By default AFS is multi-AZ which is good for prod due to if an entire AZ
+      goes down. Choosing just a single AZ can be good for dev though.
+    </p>
+    <p>
+      EFS has a security group, EFS should inherit the security groups from the
+      EC2 instances that utilizes it, for the EC2 instance to work with EFS the
+      instance must mount a local folder to EFS.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/efs-lifecycle.png"
+    />
+  </body>
+</html>
