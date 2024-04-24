@@ -11,5 +11,108 @@
     <a href="./index.html">Home</a>
 
     <h1>RDS, Aurora and Elasticache</h1>
+    <h2>Overview</h2>
+    <p>
+      RDS stands for relational database service, it's a manage DB service which
+      uses SQL.
+    </p>
+    <p>Databases managed by AWS:</p>
+    <ul>
+      <li>Postgres</li>
+      <li>MySql</li>
+      <li>MariaDB</li>
+      <li>Oracle</li>
+      <li>Microsoft SQL Server</li>
+      <li>IMB DB2</li>
+      <li>Aurora (AWS Proprietary database)</li>
+    </ul>
+    <p>
+      As RDS is a managed service AWS is responsible for automated provisioning,
+      OS patches, continuous backups and restoring to a point in time,
+      monitoring dashboard, read replicas, multi AZ for DR, maintenance windows
+      for upgrades, horizontal and vertical scaling, storage backed by EBS.
+    </p>
+    <p>
+      We cannot SSH into the RDS instance as we do not have direct access to the
+      underlying instance.
+    </p>
+    <p>
+      Backups for RDS are enabled by default and a full backup is done daily,
+      transaction logs are backed up by RDS every 5 minutes, there is a 7 day
+      retention by default but this can be increased to 35 days.
+    </p>
+    <p>
+      Database are triggered manually by the user, can retain backups for as
+      long as you want.
+    </p>
+    <p>
+      RDS has storage auto scaling, the storage size of your database will
+      increase dynamically, this avoids manual management of the database. You
+      have to set a maximum storage threshold. Can automatically modify storage
+      if free storage is less than 10% of allocated storage, low-storage lasts
+      at least 5 minutes and there has been 6 hours since the last modification.
+    </p>
+
+    <h2>Read Replicas vs Multi AZ</h2>
+    <p>
+      You can have up to 15 read replicas of a database. These can be within the
+      same AZ, across AZs or even across regions.
+    </p>
+    <p>
+      The read replication is asynchronous which means the that in the read
+      replicas are eventually consistent, you could potentially write to the
+      main db instance, then read from a read replica and the read replica not
+      have the updated information from the write yet (so you get returned stale
+      data).
+    </p>
+    <p>
+      A read replica can bt promoted to their own DB, removed from the
+      replication mechanism.
+    </p>
+    <p>
+      The application must update the connection string to leverage the read
+      replica.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-db-read-replicas.png"
+    />
+    <p>
+      This is a perfect use case when you have a database that has a lot of
+      reads, for example you have a database that is storing user data from an
+      application, the analytics team then wants to run some analysis so you
+      create a read replica for them to read the data from. The original DB
+      which is read from but also written to is not impacted or slowed down.
+    </p>
+    <p>
+      Read replicas are for reading only so only SELECT statements may be used,
+      no INSERT, UPDATE or DELETE.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-read-replica-use-case.png"
+    />
+    <p>
+      There is normally a network cost for transferring data from one AZ to
+      another typically, as RDS is a managed service though there is no fee for
+      cross AZ read replication. Cross region read replication will have a fee
+      though.
+    </p>
+    <p>
+      RDS Multi AZ is typically used for DR, there is synchronous replication
+      between the database in one AZ and another AZ in the same region. The
+      application only talks directly to one DB (one DNS name), if the master DB
+      fails there is automatic failover to the standby instance. This is not
+      used for scaling, the extra DB is only on standby, it is not read to or
+      written to.
+    </p>
+    <p>Read replicas however can also be setup as multi AZ for DR.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-read-replicas-multi-az.png"
+    />
+    <p>
+      To take a DB from single AZ to multi AZ requires 0 downtime, just modify
+      the setting. To pull this off AWS takes a snapshot of the DB, then in the
+      standby db restore from the snapshot, after this there is a synchronous
+      replication step between the DB instance and the standby DB.
+    </p>
   </body>
 </html>
