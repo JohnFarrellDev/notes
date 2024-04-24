@@ -11,6 +11,7 @@
     <a href="./index.html">Home</a>
 
     <h1>RDS, Aurora and Elasticache</h1>
+
     <h2>Overview</h2>
     <p>
       RDS stands for relational database service, it's a manage DB service which
@@ -113,6 +114,240 @@
       the setting. To pull this off AWS takes a snapshot of the DB, then in the
       standby db restore from the snapshot, after this there is a synchronous
       replication step between the DB instance and the standby DB.
+    </p>
+
+    <h2>Amazon Aurora</h2>
+    <p>
+      Aurora is a propriety database from AWS, Postgres and MySQL are both
+      supported which means that your drivers will work as if Aurora was a
+      Postgres or MySQL DB.
+    </p>
+    <p>
+      Aurora is cloud optimized and claims 5x performance over MySQL on RDS and
+      over 3x performance of Postgres on RDS.
+    </p>
+    <p>
+      Auroras storage automatically grows in increments of 10GB up to 128TB,
+      starting at 10GB.
+    </p>
+    <p>
+      Aurora can have up to 15 read replicas and the replication process is
+      faster than MySQL with about 10ms replication lag. Failover in Aurora is
+      instantaneous, it is great for high availability (HS).
+    </p>
+    <p>Aurora does cost about 20% more than RDS but is more efficient.</p>
+    <p>
+      Aurora stores 6 copies of your data across 3 AZs, 4 copies out of 6 must
+      be running for writes while 3 copies out of 6 required for reads. There is
+      an automatic self healing process with peer-to-peer replication if some
+      data is corrupted. Storage is spread across 100s of volumes.
+    </p>
+    <p>
+      One master instance in Aurora takes all the writes, if the write db fails
+      then failover takes place in less than 30 seconds, there can be up to 15
+      read replicas to scale the read load, if the master fails any of these
+      read replicas can become the master.
+    </p>
+    <p>
+      Aurora provides a single writer endpoint, this is a constant endpoint that
+      always points at the master instance.
+    </p>
+    <p>
+      The amount of read replicas is managed by auto scaling, there is a reader
+      endpoint that helps with connection load balancing and will connect to one
+      of the read replicas, this way you get a single endpoint and load
+      balancing.
+    </p>
+
+    <h3>Aurora Security</h3>
+    <p>
+      Can encrypt the data at-rest, the data is encrypted on the volume. To do
+      this you use AWS KMS and this is defined at launch time. If the master DB
+      is not encrypted the read replicas cannot be encrypted. To encrypt an
+      un-encrypted DB you take a snapshot of the DB, then restore the snapshot
+      as encrypted.
+    </p>
+    <p>
+      In-flight encryption is ready by default using TSL certificates, must use
+      the AWSTLS root certificate client side.
+    </p>
+    <p>
+      Can use username/password to connect to the database but can use IAM roles
+      which can allow EC2 instances to connect to the database.
+    </p>
+    <p>
+      Can utilize security groups to control network access to an RDS our Aurora
+      DB. SSH access is not available except for RDS Custom.
+    </p>
+    <p>
+      If you want audit logs can be enabled, if you want longer retention send
+      the logs to AWS CloudWatch log service.
+    </p>
+
+    <h2>RDS Proxy</h2>
+    <p>
+      We might want to use an AWS RDS Proxy to allow apps to pool and share DB
+      connections established with the database. This reduces the number of
+      connections to the instance which can improve the DB performance.
+    </p>
+    <p>The RDS proxy, is serverless, autoscaling and HA by being multi AZ.</p>
+    <p>When a failover occurs the RDS proxy can reduce failover time by 66%.</p>
+    <p>
+      A final advantage is you can enforce IAM authentication for DB connection
+      and securely store credentials in AWS Secrets Manager.
+    </p>
+    <p>
+      The RDS proxy is not publicly available, can only be connected to from
+      within the VPC.
+    </p>
+
+    <h2>Elasticache</h2>
+    <p>
+      Elasticache allows us to have managed Redis or Memcached in-memory
+      databases.
+    </p>
+    <p>
+      Helps reduce load from the database for read intensive workloads or for
+      common queries.
+    </p>
+    <p>
+      Just like RDS AWS takes care of OS maintenance, patching, setup,
+      configuration, monitoring and backups.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-cache-architecture.png"
+    />
+    <p>There must be a cache invalidation strategy to remove old data.</p>
+    <p>We can also use Elasticache to make our application stateless.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/elasticache-user-session.png"
+    />
+
+    <p>Redis:</p>
+    <ul>
+      <li>Redis has Multi-AZ with auto failover</li>
+      <li>Read replicas to scale reads and have high availability</li>
+      <li>Data durability using append only file (AOF) persistence</li>
+      <li>Backup and restore features</li>
+      <li>Supports sets and sorted sets</li>
+    </ul>
+
+    <p>Memcached:</p>
+    <ul>
+      <li>Memcached has multi-node for partitioning of data (sharding)</li>
+      <li>No high availability/replication</li>
+      <li>Non persistent</li>
+      <li>No backup and restore</li>
+      <li>Multi-threaded architecture</li>
+    </ul>
+    <p>
+      With Memcached the idea is you don't mind if you lose your data, it is a
+      true temporary cache. Memcached has higher performance.
+    </p>
+
+    <h3>ElastiCache Strategies</h3>
+    <span class="external-link"></span>
+    <a href="https://aws.amazon.com/caching/best-practices/" target="_blank"
+      >Read more from AWS here</a
+    >
+    <p>
+      You have to consider when to cache data and how to cache it. For example
+      if data should never be out of date caching the data could be dangerous.
+    </p>
+    <p>
+      Or maybe caching won't benefit the data if queries don't share common keys
+      so there will be very infrequent cache hits.
+    </p>
+    <p>There are multiple caching strategies if you do choose to cache.</p>
+    <h4>Lazy Loading (Cache-Aside, Lazy Population)</h4>
+    <p>
+      Only requested data is cached, after a cache miss the data fetched from
+      rds is added to the cache, future requests for the same data then hit the
+      cache.
+    </p>
+    <p>
+      A cache miss results in 3 network calls, miss to cache, hit to rds and
+      finally write to cache. This experience that occurs on a cache miss might
+      make the application seem slow to the user.
+    </p>
+    <p>
+      Can get stale data with this strategy , if the cache is already populated
+      but since being populated the database has been written too.
+    </p>
+    <p>
+      The cache only contains objects that the application actually requests,
+      which helps keep the cache size manageable. New objects are only added to
+      the cache as needed. You can then manage your cache memory passively, by
+      simply letting the engine you are using evict the least-accessed keys as
+      your cache fills up, which it does by default.
+    </p>
+    <p>
+      As new cache nodes come online, for example as your application scales up,
+      the lazy population method will automatically add objects to the new cache
+      nodes when the application first requests them.
+    </p>
+    <p>
+      Cache expiration is easily handled by simply deleting the cached object. A
+      new object will be fetched from the database the next time it is
+      requested.
+    </p>
+    <p>
+      Lazy caching is widely understood, and many web and app frameworks include
+      support out of the box.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/lazy-loading-cache.png"
+    />
+    <h4>Write Through</h4>
+    <p>
+      When we write to the RDS we also write to the cache after first writing to
+      the RDS. This mean that every created or updated item will be added to the
+      cache. This means data in the cache is never stale. We have a "write
+      penalty".
+    </p>
+    <p>
+      Every time we write to the database we have 2 network calls, write to
+      database then write to the cache. This might add a bit of overhead to the
+      response time but users tend to expect writing data to have some overhead.
+    </p>
+    <p>
+      Because we write to the cache on every write we will frequently cause
+      items to be removed from the cache, the recently written item might not
+      actually be fetched often.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/write-through-cache.png"
+    />
+    <p>
+      We often use a lazy loading combined with a write through caching
+      approach.
+    </p>
+    <h3>Cache Evictions</h3>
+    <p>Three ways to do cache evictions:</p>
+    <ul>
+      <li>Delete the item explicitly</li>
+      <li>
+        Item is evicted as the cache memory is full and the item is the least
+        recently used (LRU) item
+      </li>
+      <li>
+        You set an item time-to-live (TTL) then the item is removed from the
+        cache, good for something like a game leaderboard for a few seconds can
+        be useful, when using write through do not set a TTL.
+      </li>
+    </ul>
+
+    <h2>MemoryDB for Redis</h2>
+    <p>
+      This is a Redis compatible, durable, in-memory database service.
+      Ultra-fast performance with over 160 million requests/second.
+    </p>
+    <p>
+      Has a Multi-AZ transactional log plus scales seamlessly from 10s GBs to
+      100s of TBs.
+    </p>
+    <p>
+      Use case is in web and mobile apps, online gaming and media streaming.
     </p>
   </body>
 </html>
