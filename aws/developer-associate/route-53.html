@@ -11,5 +11,77 @@
     <a href="./index.html">Home</a>
 
     <h1>RDS 53</h1>
+
+    <h2>DNS</h2>
+    <p>
+      DNS allows us to translate human readable domain names into IP addresses,
+      such as google.com becoming 172.217.18.16 . The name server resolves DNS
+      queries by returning the IP address for the domain dame.
+    </p>
+    <p>
+      The whole backbone of the internet is built on top of DNS. DNS uses
+      hierarchial naming structure, root is .com, example.com is more precise
+      then can go even further and go api.example.com.
+    </p>
+    <p>
+      Something like .com or .gov is considered a top level domain (TLD), then a
+      second level domain would be amazon.com
+    </p>
+    <p>
+      Domain names must be registered with a registrar such as Amazon Route 53
+      or GoDaddy.
+    </p>
+    <p>
+      With your domain you have important DNS Records, these are A, AAAA, CNAME,
+      NS.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/domain-name-parts.png"
+    />
+    <p>ICANN - Internet Corporation for Assigned Names and Numbers</p>
+    <p>IANA - Internet Assigned Numbers Authority</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/how-dns-works.png"
+    />
+
+    <h2>Overview</h2>
+    <p>
+      Route 53 is a highly available, scalable, fully managed and authoritative
+      DNS. Authoritative meaning the user cna update the DNS records. Is the
+      only service that provides 100% availability.
+    </p>
+    <p>Route 53 has the ability to check the health of your resources.</p>
+    <p>Route 53 refers to the traditional DNS port being on 53.</p>
+    <p>Your route 53 record defines how your route traffic for a domain:</p>
+    <ul>
+      <li>Domain/subdomain Name - example.com</li>
+      <li>RecordType - A, AAAA, cname</li>
+      <li>Value - 123.4566.789.123</li>
+      <li>Routing Policy - How route 53 responds to queries</li>
+      <li>TTL - amount of time the record cached at DNS resolves</li>
+    </ul>
+    <p>Route 53 supports the following DNS record types: A, AAAA, CNAME, NS.</p>
+    <p>These record types represent:</p>
+    <ul>
+      <li>A - maps hostname to IPv4</li>
+      <li>AAAA - maps hostname to IPv6</li>
+      <li>
+        <p>CNAME - maps hostname to another hostname</p>
+        <ul>
+          <li>Target is domain name which must an A or AAAA record</li>
+          <li>
+            Can't create a CNAME record for the top node of a DNS namespace
+            (Zone Apex)
+          </li>
+          <li>
+            Can't create a CNAME for example.com but can for www.example.com
+          </li>
+        </ul>
+      </li>
+      <li>
+        NS - Name Servers for the hosted Zone, DNS names of IP addresses of
+        servers that can respond to queries for hosted zone
+      </li>
+    </ul>
   </body>
 </html>
