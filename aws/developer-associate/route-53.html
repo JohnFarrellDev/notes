@@ -47,7 +47,7 @@
     <h2>Overview</h2>
     <p>
       Route 53 is a highly available, scalable, fully managed and authoritative
-      DNS. Authoritative meaning the user cna update the DNS records. Is the
+      DNS. Authoritative meaning the user can update the DNS records. Is the
       only service that provides 100% availability.
     </p>
     <p>Route 53 has the ability to check the health of your resources.</p>
@@ -82,6 +82,305 @@
         NS - Name Servers for the hosted Zone, DNS names of IP addresses of
         servers that can respond to queries for hosted zone
       </li>
+    </ul>
+    <h3>Hosted Zones</h3>
+    <p>
+      A container for records that define how to route traffic to a domain and
+      its subdomains.
+    </p>
+    <p>
+      Public hosted zones - contains records that specify how to route traffic
+      on the internet.
+    </p>
+    <p>
+      Private hosted zones - contain records that specify how you route traffic
+      within one or more VPCs (internal corporate domains)
+    </p>
+    <p>$0.50 per month per hosted zone.</p>
+    <p>$12 per domain per year.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/private-vs-public-hosted-zone.png"
+    />
+    <h3>Records TTL (Time To Live)</h3>
+    <p>
+      The router 53 server must return a TTL alongside the IP address. This
+      could be a low value such as 60 seconds or much higher such as 24 hours. A
+      higher TTL saves money as the DNS server will get less requests from the
+      clients but records will be outdated for longer.
+    </p>
+    <h3>CNAME vs Alias</h3>
+    <h4>CNAME</h4>
+    <ul>
+      <li>
+        Points a hostname to any other hostname (app.mydomain.com to
+        blabla.anything.com)
+      </li>
+      <li>Only for non root domain names</li>
+      <li>
+        Cannot be run against apex domain (such as example.com), only sub domain
+        are allowed a CNAME (such as foo.example.com)
+      </li>
+    </ul>
+    <h4>Alias</h4>
+    <ul>
+      <li>Alias are specific to route 53</li>
+      <li>Allows us to point a hostname to an AWS resource</li>
+      <li>
+        Works for root domain and non root domain (aka mydomain.com and
+        example.mydomain.com)
+      </li>
+      <li>Free</li>
+      <li>Health check</li>
+      <li>Extension to DNS functionality</li>
+      <li>Automatically recognize changes in the resource's IP address</li>
+      <li>Alias record is always of type A or AAAA</li>
+      <li>TTL cannot be set</li>
+      <li>
+        <p>Target can be</p>
+        <ul>
+          <li>Elastic load balancers</li>
+          <li>CloudFront distributions</li>
+          <li>API Gateway</li>
+          <li>Elastic Beanstalk environments</li>
+          <li>S3 Websites</li>
+          <li>VPC interface endpoints</li>
+          <li>Global accelerator</li>
+          <li>Route 53 in the same hosted zone</li>
+          <li>Cannot set an Alias record for an EC2 DNS name</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Routing Policies</h3>
+    <ul>
+      <li>Helps route 53 respond to DNS queries</li>
+      <li>
+        DNS is not routing traffic like how an ALB routes traffic to an EC2
+        instance
+      </li>
+      <li>
+        <p>Routing policies</p>
+        <ul>
+          <li>Simple</li>
+          <li>Weighted</li>
+          <li>Failover</li>
+          <li>Latency</li>
+          <li>Geolocation</li>
+          <li>Multi-value answer</li>
+          <li>Geoproximity using route 53 traffic flow feature</li>
+        </ul>
+      </li>
+    </ul>
+    <h4>Simple</h4>
+    <ul>
+      <li>Typically route traffic to a single resource</li>
+      <li>Can specify multiple values in the same record</li>
+      <li>
+        If multiple values are returned a random one is chosen by the client
+      </li>
+      <li>When Alias enabled only one target can be specified</li>
+      <li>Can not enable health checks</li>
+    </ul>
+
+    <h4>Weighted</h4>
+    <ul>
+      <li>Control which % of traffic gets sent to each record</li>
+      <li>
+        Weights don't need to sum up to 100, percentage calculated by specific
+        route weight/total weight
+      </li>
+      <li>
+        Use case, load balance between regions, testing new application versions
+        with small amount of traffic, a/b testing
+      </li>
+      <li>
+        0 would stop traffic being sent to a resource unless all resources have
+        a weight of 0 at which point they share traffic equally
+      </li>
+    </ul>
+
+    <h4>Latency</h4>
+    <ul>
+      <li>Redirect to the resource that has the lowest latency for us</li>
+      <li>Helpful when users require low latency</li>
+      <li>Latency is based on traffic between users and AWS regions</li>
+      <li>
+        Germany users could be directed to US if that has the lowest latency
+      </li>
+      <li>Can be associated with Health Checks (has a failover capability)</li>
+    </ul>
+
+    <h4>Health Checks</h4>
+    <ul>
+      <li>Mainly for checking public resources</li>
+      <li>
+        If an instance is down we don't want to send users to the instance
+      </li>
+      <li>
+        <p>Halt Check => Automated DNS Failover:</p>
+        <ul>
+          <li>
+            Health checks that monitor an endpoint (application, server, other
+            AWS resource)
+          </li>
+          <li>
+            Health checks that monitor other health checked (calculated health
+            checks)
+          </li>
+          <li>Health checks that monitor CloudWatch Alarms (full control)</li>
+        </ul>
+      </li>
+      <li>
+        Health check is every 30 seconds for regular, can pay for every 10
+        seconds
+      </li>
+    </ul>
+
+    <p>Monitoring the endpoint</p>
+    <ul>
+      <li>Around 15 health checkers running globally</li>
+      <li>These use HTTP, HTTPS and TCP protocols</li>
+      <li>
+        If > 18% of health checkers report the endpoint as healthy then Route 53
+        deems the endpoint healthy
+      </li>
+      <li>Health check passes if a status of 2xx or 3xx is returned</li>
+      <li>
+        Health check can be setup to pass/fail based on the text in the first
+        5120 bytes of the response
+      </li>
+      <li>
+        Configure router/firewall to allow incoming requests from Route 53
+        health checkers
+      </li>
+    </ul>
+
+    <p>Calculated health checks:</p>
+    <ul>
+      <li>Can combine multiple health checks into a single health check</li>
+      <li>Can use AND, OR, NOT</li>
+      <li>Can monitor upto 256 child health checks</li>
+      <li>
+        Specify how many of the health checks need to pass parent health check
+      </li>
+      <li>
+        Usage: Updating website incrementally without causing all health checks
+        to fail
+      </li>
+    </ul>
+
+    <p>Health check on a private resource</p>
+    <ul>
+      <li>Route 53 health checkers are outside the VPC</li>
+      <li>Cannot access private endpoints</li>
+      <li>
+        Can created a CloudWatch metric and associate a CloudWatch Alarm, Health
+        check checks for CloudWatch alarm
+      </li>
+    </ul>
+
+    <h4>Failover</h4>
+    <ul>
+      <li>
+        Require a primary instance that route 53 redirects to, instance which
+        must have a health check
+      </li>
+      <li>
+        Requires a second instance for route 53 to redirect to if primary
+        instance health check is failing
+      </li>
+    </ul>
+
+    <h4>Geolocation</h4>
+    <ul>
+      <li>Not same as US based</li>
+      <li>Routing is based on user location</li>
+      <li>Specify location by continent, country or by US state</li>
+      <li>Should have a default record for if there is no location match</li>
+      <li>
+        Use case is for restricting content distribution based on users location
+      </li>
+    </ul>
+
+    <h4>Geoproximity</h4>
+    <ul>
+      <li>
+        Route traffic to your resources based on location of your users and the
+        resources
+      </li>
+      <li>
+        Ability to shift more traffic to resources based on the defined bias
+      </li>
+      <li>
+        To change the size of the geographic region specify bias value (-99 to
+        99)
+      </li>
+      <li>Higher number = more traffic to the resource</li>
+      <li>
+        Resources can be AWS resources (specify AWS region) or Non-AWS resources
+        which require longitude and latitude
+      </li>
+      <li>Must enable route 53 traffic flow to enable the bias</li>
+      <li>
+        Really helpful when wanting to shift traffic from one region to another
+        by increase/decreasing bias
+      </li>
+    </ul>
+
+    <h4>Traffic Flow</h4>
+    <ul>
+      <li>
+        Simplify the process of creating and maintaining records in large
+        complex configurations
+      </li>
+      <li>Visual editor to mange complex routing decision trees</li>
+      <li>
+        <p>Configurations can be saved as Traffic Flow Policy</p>
+        <ul>
+          <li>supports versioning</li>
+          <li>
+            can be applied to different route 53 hosted zones (different domain
+            names)
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <h4>IP Based</h4>
+    <ul>
+      <li>Routing is based on clients' IP address</li>
+      <li>
+        You provide a list of CIDRs for your clients (CIDR is an IP range)
+      </li>
+      <li>For example can route specific ISP to a specific endpoint</li>
+    </ul>
+
+    <h4>Multi Value</h4>
+    <ul>
+      <li>Route traffic to multiple resources</li>
+      <li>
+        Can be associated with health checks so only healthy resources returned
+      </li>
+      <li>Up to 8 healthy records returned for each multi-value query</li>
+      <li>
+        Not a substitute for an ELB, client side chooses which resource to use
+      </li>
+    </ul>
+
+    <h4>Third Party Domains and Route 53</h4>
+    <ul>
+      <li>Can buy domain from any registrar you want</li>
+      <li>
+        Domain registrar usually provides you with a DNS service to manage your
+        DNS records
+      </li>
+      <li>You can use another DNS service to manage your DNS records</li>
+      <li>
+        For example purchase domain through GoDaddy but managed through Route53
+      </li>
+      <li>GoDaddy has to point at Route53 nameservers</li>
+      <li>Create hosted zone in route 53</li>
+      <li>Update NS records on 3rd party to point to Route53 Name Servers</li>
     </ul>
   </body>
 </html>
