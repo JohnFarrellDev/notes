@@ -5,3 +5,4 @@
 3. During the Priest in Peril quest you fight a temple guardian in the basement of a temple, what is the name of the temple?
    - Paterdomus
 4. Jute Seeds. 1 what farming level is required to grow jute seeds, 2 what do you protect a jute seed patch with and the amount for a bonus point. (quickest to correct answer gets a bonus point, time limit?)
+5. Name as many pubs in RuneScape as possible in 2 minutes.

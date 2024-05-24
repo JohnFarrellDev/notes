@@ -163,3 +163,7 @@ p code {
 .external-link::before {
   content: "🔗";
 }
+
+img {
+  margin: var(--margin-m) 0;
+}

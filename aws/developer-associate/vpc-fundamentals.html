@@ -11,5 +11,140 @@
     <a href="./index.html">Home</a>
 
     <h1>VPC Fundamentals</h1>
+
+    <p>VPC stands for Virtual Private Cloud.</p>
+    <p>Need to know:</p>
+    <ul>
+      <li>VPC</li>
+      <li>Subnets</li>
+      <li>Internet gateways</li>
+      <li>NAT (network address translation) gateways</li>
+      <li>Security groups</li>
+      <li>Network ACL (NACL)</li>
+      <li>VPC Flow Logs</li>
+      <li>VPC peering</li>
+      <li>VPC endpoints</li>
+      <li>Sit to site VPN and Direct Connect</li>
+    </ul>
+
+    <h2>VPC and Subnets</h2>
+    <p>
+      VPC is a virtual private cloud, this is a private network within AWS that
+      allows deployment of resources within the VPC. VPCs are regional based,
+      different regions have separate VPCs
+    </p>
+    <p>
+      Subnets allow you to partition your network within your VPC, subnets are
+      an availability zone resource.
+    </p>
+    <p>
+      A subnet can be public so can access the WWW and be accessed by the WWW.
+    </p>
+    <p>
+      A subnet can also be private so the subnet is not internet accessible.
+    </p>
+    <p>
+      To define access to the internet and between subnets we use Route Tables.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/vpc.png"
+    />
+
+    <h3>Internet Gateways and NAT Gateways</h3>
+    <p>
+      Our internet gateway allows our subnets to connect to the internet, the
+      public subnet has a connection to the IGW and the IGW can connect to the
+      internet.
+    </p>
+    <p>
+      If we want our private subnets to access the internet we can use NAT
+      gateways which are managed by AWS. This allow instances in the private
+      subnet to access the internet while remaining private.
+    </p>
+    <p>
+      The NAT gateway is deployed within our public subnet, the NAT gateway has
+      a route to the IGW. The private subnet then connects to the NAT gateway in
+      the public subnet.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/private-vpc-nat-gateway.png"
+    />
+
+    <h2>Network ACL and Security Groups</h2>
+    <p>
+      Network ACL (access control list) is a firewall which controls traffic to
+      and from the subnet.
+    </p>
+    <p>
+      The NACL can have ALLOW and DENY rules that are attached at the subnet
+      level, rules only include IP addresses.
+    </p>
+    <p>
+      We also have security groups that can control traffic to an ENI (elastic
+      network interface) which in turn controls traffic to our EC2 instances.
+      The security group can only have ALLOW rules and reference IP addresses or
+      other security groups.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/nacl-security.png"
+    />
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/acl-vs-security-group.png"
+    />
+    <h3>VPC Flow Logs</h3>
+    <p>Captures all information about IP traffic going into your interfaces.</p>
+    <ul>
+      <li>VPC flow Logs</li>
+      <li>Subnet flow logs</li>
+      <li>Elastic network interface flow logs</li>
+    </ul>
+    <p>Helps monitory and troubleshoot connectivity issues.</p>
+    <p>
+      Captures network information from AWS managed interfaces too (ELB,
+      ElastiCache, RDS, etc...)
+    </p>
+    <p>
+      VPC Flow Logs data can be sent to S3, CloudWatch, Kinesis Data Firehose.
+    </p>
+
+    <h2>VPC Peering</h2>
+    <p>
+      Connect two VPCs in different cloud environments or different regions
+      using AWS' network. This allows them to communicate and behave as if they
+      are in the same network.
+    </p>
+    <p>The IP ranges for each VPC CIDR cannot overlap!</p>
+    <p>VPC peering connection is not transitive.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/vpc-peering.png"
+    />
+    <h3>VPC Endpoints</h3>
+    <p>
+      VPC endpoints allow us to connect to AWS services using a private network
+      instead of the public web. This gives ue enhanced security and lower
+      latency to access AWS services.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/vpc-endpoint.png"
+    />
+
+    <h3>Sit to Site VPN</h3>
+    <p>Allows us to connect on premise VPN to AWS.</p>
+    <p>Data is automatically encrypted over the public internet.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/site-to-site-vpn.png"
+    />
+
+    <h3>Direct Connect (DX)</h3>
+    <p>Established a physical connection between on-premises and AWS.</p>
+    <p>
+      The connection is private, secure and fast but takes at least a month to
+      establish.
+    </p>
+
+    <h2>Three Tier Solution Architecture</h2>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/three-tier-solution-architecture.png"
+    />
   </body>
 </html>
