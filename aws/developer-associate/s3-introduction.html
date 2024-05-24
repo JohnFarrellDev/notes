@@ -11,5 +11,268 @@
     <a href="./index.html">Home</a>
 
     <h1>S3 Introduction</h1>
+
+    <ul>
+      <li>One of main building blocks of AWS</li>
+      <li>Infinitely scaling storage</li>
+      <li>Widely popular</li>
+      <li>Many websites use S3 as a backbone, can deploy sites to S3</li>
+      <li>Many other AWS services integrate with S3</li>
+    </ul>
+
+    <h2>Buckets</h2>
+    <ul>
+      <li>
+        S3 allows people to store objects (files) in buckets (directories)
+      </li>
+      <li>Buckets must have a globally unique name</li>
+      <li>Buckets are defined at the region level</li>
+      <li>
+        Naming convention is no uppercase and no underscore, 3-64 characters
+        long, no IP, start with letter or number
+      </li>
+    </ul>
+
+    <h2>Paths</h2>
+    <p>Files have a key, the key is the full path to the file.</p>
+    <p>s3://my-bucket/my_folder/another_folder/my_file.txt</p>
+    <p>
+      Key is composed of a prefix and object name, prefix is
+      /my_folder/another_folder and object name is my_file.txt
+    </p>
+    <p>Full key is /my_folder/another_folder/my_file.txt</p>
+    <p>
+      There's no concept of directories within buckets, the full path is just
+      the key though the UI will make it look like directories exist
+    </p>
+
+    <p>S3 has many use cases:</p>
+    <ul>
+      <li>Backup and storage</li>
+      <li>Disaster recovery</li>
+      <li>Archive</li>
+      <li>Hybrid cloud storage</li>
+      <li>Application hosting</li>
+      <li>Media hosting</li>
+      <li>Data lakes and big data analytics</li>
+      <li>Software delivery</li>
+      <li>Static websites</li>
+    </ul>
+
+    <h2>Files</h2>
+    <ul>
+      <li>Maximum object size on S3 is 5 Tb</li>
+      <li>If uploading more than 5GB must use multi-part upload</li>
+      <li>
+        Each object on S3 can have metadata (key: value pair) and also up to 10
+        tags which is useful for security/life-cycle
+      </li>
+      <li>Objects also have versioning</li>
+    </ul>
+
+    <h2>Versioning</h2>
+    <ul>
+      <li>You can version files in S3</li>
+      <li>It is enabled at the bucket level</li>
+      <li>
+        Same key will overwrite existing file with a new version, incrementing
+        integers starting at 1
+      </li>
+      <li>
+        <p>Best practice to version your buckets</p>
+        <ul>
+          <li>
+            Protection against unintended deletes of a file (object still in S3
+            but will just have a new version with a Delete marker)
+          </li>
+          <li>
+            If you want to permanently delete you can select specific versions
+            to delete
+          </li>
+          <li>Can rollback to to previous versions</li>
+        </ul>
+      </li>
+      <li>Any file before versioning provisioned has null version</li>
+      <li>
+        If you suspend versioning on a bucket the pre-existing versions on files
+        will persist
+      </li>
+    </ul>
+
+    <h2>Security</h2>
+    <p>
+      Security can be user based such as IAM policies, which API calls should be
+      allowed for a specific user from IAM.
+    </p>
+    <p>
+      Security can also be resource based such as bucket policies, these are
+      bucket wide rules that can be set. There are also object access control
+      list filters which provide a finer grain of filtering. Also bucket ACL
+      which is less common.
+    </p>
+    <p>
+      An IAM principal can access an S3 object if the user IAM permissions allow
+      it OR the resource policy allows it AND there's no explicit deny.
+    </p>
+
+    <h3>Policies</h3>
+    <ul>
+      <li>Policies are JSON based</li>
+      <li>Applied to buckets or objects</li>
+      <li>Effect is allow or deny</li>
+      <li>Action set of APIs to allow or deny</li>
+      <li>Principal is the account or user to apply the policy too</li>
+      <li>Use S3 bucket policy to make the bucket publicly accessible</li>
+      <li>
+        Force object to be encrypted at upload, policy deny any API PUT unless
+        x-amz-server-side-encryption is not null and has value AES256
+      </li>
+      <li>Grant access to another account</li>
+    </ul>
+
+    <h4>Bucket Settings for Blocking Public Access</h4>
+    <p>Block public access to buckets and their objects using:</p>
+    <ul>
+      <li>New access control lists</li>
+      <li>Any access control lists</li>
+      <li>New public buckets or access point policies</li>
+    </ul>
+
+    <h3>Encryption</h3>
+    <ul>
+      <li>SSE-S3: Encrypts S3 objects using keys handled and managed by AWS</li>
+      <li>
+        SSE-KMS: Leverages AWS key management service to manage encryption keys
+      </li>
+      <li>SSE-C: manage your own encryption keys</li>
+      <li>Client side encryption</li>
+    </ul>
+
+    <h4>SSE-S3</h4>
+    <ul>
+      <li>Keys used to encrypt data are handled by S3</li>
+      <li>Object is encrypted server side</li>
+      <li>AES-256 encryption used</li>
+      <li>Must set header: "x-amz-server-side-encryption": "AES256"</li>
+    </ul>
+
+    <h4>SSE-KMS</h4>
+    <ul>
+      <li>SSE-KMS: encryption using keys handled and managed by KMS</li>
+      <li>KMS advantages: user control + audit trail</li>
+      <li>Object is encrypted server side</li>
+      <li>Must set header: "x-amz-server-side-encryption": "aws:kms"</li>
+    </ul>
+
+    <h4>SSE-C</h4>
+    <ul>
+      <li>Server side encryption</li>
+      <li>Amazon S3 does not store the key, you provide the key to AWS</li>
+      <li>Must use HTTPS as submitting the encryption key in the request</li>
+      <li>Keys stored client side</li>
+      <li>Key must be provided when retrieving the files from S3</li>
+    </ul>
+
+    <h4>Client Side Encryption</h4>
+    <ul>
+      <li>Encrypt object before sending the object to S3</li>
+      <li>Can utilize Amazon S3 Encryption Client</li>
+      <li>Clients muse decrypt the key themselves when retrieving the data</li>
+      <li>Customer fully manages the keys and encryption cycle</li>
+    </ul>
+
+    <h3>Other</h3>
+    <ul>
+      <li>Supports VPC endpoints for instances in VPC without WWW internet</li>
+      <li>
+        <p>Logging and audit:</p>
+        <ul>
+          <li>S3 access logs can be stored in other S3 buckets</li>
+          <li>API calls can be logged in AWS CloudTrail</li>
+        </ul>
+      </li>
+      <li>
+        <p>User Security:</p>
+        <ul>
+          <li>
+            MFA Delete: MFA required to delete objects/versions of objects
+          </li>
+          <li>
+            Pre-signed URLS: Only valid for a limited time (use-case, download
+            premium video for logged in users, limited time access for users)
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>S3 Website</h2>
+    <ul>
+      <li>S3 can host static websites and have them accessible on the WWW</li>
+      <li>S3 bucket must allow public access if hosting static websites (only need to require GET and we can select for only specific files to be publicly accessible)</li>
+      <li>The website url will be the <bucket-name>.s3-website-<aws-region>.amazonaws.com</li>
+    </ul>
   </body>
+
+  <h2>S3 CORS</h2>
+  <ul>
+    <li>CORS - Cross Origin Resource Sharing</li>
+    <li>An origin is a scheme (protocol), a host (domain) and a port</li>
+    <li>HTTP is the scheme, example.com is the domain, port is 443 for HTTPS and 80 for HTTP</li>
+    <li>Web browser based mechanism to allow request to other origins while visiting main origin</li>
+    <li>URL can request resources from another URL if the other URL allows CORS using CORS Headers (access-control-allow-origin)</li>
+    <li>If a client does a cross-origin request on our S3 bucket we need the correct CORS headers</li>
+    <li>You can allow a specific origin or all using *</li>
+  </ul>
+
+  <h2>S3 Consistency Model</h2>
+  <ul>
+    <li>Strongly consistent as of December 2020</li>
+    <li>After a successful write (PUT) or an overwrite (PUT or DELETE) and subsequent read request immediately receives the latest version of the object</li>
+    <li>Read after write consistency</li>
+    <li>Subsequent list request immediately reflects changes (list consistency)</li>
+  </ul>
+
+  <h2>Storage Classes</h2>
+  <ul>
+    <li>Standard - General Purpose</li>
+    <li>Standard-Infrequent Access</li>
+    <li>One Zone-Infrequent Access</li>
+    <li>Instant Retrieval</li>
+    <li>Flexible Retrieval</li>
+    <li>Deep Archive</li>
+    <li>Intelligent Tiering</li>
+  </ul>
+  <p>Can move object manually between classes or can be automated.</p>
+  <p>Amazon has very high durability at 11 9s, same for all storage classes.</p>
+  <h3>S3 Standard</h3>
+  <p>S3 standard has 99.99% availability. Used for frequently accessed data. Low latency and high throughput. Sustain 2 concurrent facility failures. Use cases are big data analytics, mobile and gaming applications and content distribution.</p>
+  <h3>Infrequent Access</h3>
+  <p>For data that is infrequently accessed but the latency must be low when retrieved. Costs less than S3 standard.</p>
+  <p>99.9% availability, use case is DR and backups.</p>
+  <h4>One-Zone Infrequent Access</h4>
+  <p>Very high durability at 11 9s but only 99.5% availability.</p>
+  <p>Use case is storing secondary backups of on premise data or data that can be recreated.</p>
+  <h3>Glacier Storage Classes</h3>
+  <p>Low cost object storage meant for archiving and backup.</p>
+  <p>Pricing is for storage and object retrieval cost.</p>
+  <h4>Instant Retrieval</h4>
+  <p>Millisecond retrieval, great for quarterly accessed data.</p>
+  <p>Minimum storage duration of 90 days.</p>
+  <h4>Glacier Flexible Retrieval</h4>
+  <ul>
+    <li>Expedited - 1 to 5 minutes</li>
+    <li>Standard - 3 to 5 hours</li>
+    <li>Bulk - 5 to 12 hours</li>
+  </ul>
+  <p>Minimum storage duration of 90 days.</p>
+  <h3>Glacier Deep archive</h3>
+  <p>Standard - 12 hours</p>
+  <p>Bulk - 48 hours</p>
+  <p>Cheapest price</p>
+  <h3>Intelligent-Tiering</h3>
+  <ul>
+    <li>Small monty monitoring and auto-tiering fees</li>
+    <li>Moves objects automatically across access tiers based on usage</li>
+    <li>No retrieval charges in Intelligent-Tiering</li>
+  </ul>
 </html>
