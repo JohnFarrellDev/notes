@@ -11,5 +11,132 @@
     <a href="./index.html">Home</a>
 
     <h1>Advanced Amazon S3</h1>
+
+    <h2>S3 Lifecycle Rules</h2>
+
+    <ul>
+      <li>You can transition objects between storage classes</li>
+      <li>
+        Moving objects between storage classes can be automated based on life
+        cycle rules
+      </li>
+      <li>For example move objects to Standard IA 60 days after creation</li>
+      <li>Move to Glacier for archiving after 6 months</li>
+      <li>Access logs can be set to delete after 365 days for example</li>
+      <li>Automatically delete old versions of files if versioning enabled</li>
+      <li>Rules created for a prefix such as s3://mybucket/mp3/*</li>
+      <li>Rules created for certain object tags i.e Finance</li>
+      <li>
+        S3 analytics can help decide when to transition objects to a different
+        storage class. Does not work for One-Zone IA or Glacier, report is
+        updated daily.
+      </li>
+    </ul>
+
+    <h2>S3 Event Notifications</h2>
+    <ul>
+      <li>
+        Event occurs in a bucket such as ObjectCreated (removed, restored,
+        replicated, etc)
+      </li>
+      <li>Object name filtering possible (*.jpg)</li>
+      <li>Use case: generate thumbnails of images uploaded to S3</li>
+      <li>Can target SNS, SQS or a Lambda function</li>
+      <li>Can create as many S3 events as desired</li>
+      <li>Typically fire event within seconds but can take minutes</li>
+      <li>
+        If two writes made a to a single non-versioned object it is possible
+        only a single event fires
+      </li>
+      <li>
+        Must enable versioning if you want to ensure a single event fires per
+        write
+      </li>
+      <li>
+        All events end up in EventBridge no matter what, can setup rules within
+        EventBridge to integrate with over 18 different AWS service
+      </li>
+      <li>Alternatively can send events directly to SQS, SNS or Lambda</li>
+    </ul>
+
+    <h2>Performance</h2>
+
+    <h4>Baseline</h4>
+    <ul>
+      <li>Scales to high request rates and low latency of 100-200ms</li>
+      <li>
+        Can achieve at least 3,500 PUT/COPY/POST/DE:ETE amd 5,500 GET/HEAD
+        requests per second per prefix in a bucket
+      </li>
+      <li>No limit to number of prefixes in a single bucket</li>
+    </ul>
+
+    <h4>KMS Limitations</h4>
+    <ul>
+      <li>When you upload it calls GenerateDataKey to KMS API</li>
+      <li>When you download it calls the Decrypt KMS API</li>
+      <li>
+        Count towards KMS quota per second (5,500, 10,000 or 30,000 reqs/s based
+        on region)
+      </li>
+      <li>Can request a higher quota</li>
+      <li>Could possibly throttle S3</li>
+    </ul>
+
+    <h4>Multi-Part Upload</h4>
+    <ul>
+      <li>Recommended for files over 100Mb</li>
+      <li>Can help parallelize uploads (speed up transfer)</li>
+      <li>S3 puts parts back together into one file</li>
+    </ul>
+
+    <h4>S3 Transfer Acceleration</h4>
+    <ul>
+      <li>
+        Increase transfer speed by transferring files to an AWS edge location
+        which will forward the data to the S3 bucket in target region
+      </li>
+      <li>Compatible with multi-part upload</li>
+    </ul>
+
+    <h4>S3 Byte-Range Fetches</h4>
+    <ul>
+      <li>Parallelize GETs by requesting specific byte ranges</li>
+      <li>Better resilience in case of failures</li>
+      <li>Can be used to speed up downloads</li>
+      <li>
+        Stitch parts together on client or only retrieve head of a file if only
+        need the first byte range
+      </li>
+    </ul>
+
+    <h2>S3 Select and Glacier Select</h2>
+    <ul>
+      <li>Retrieve less data using SQL by performing server side filtering</li>
+      <li>Can filter by rows and columns (Simple SQL statements)</li>
+      <li>Less network transfer, less CPU cost client-side</li>
+      <li>Cheaper and faster</li>
+    </ul>
+
+    <h2>S3 Object Tags and Metadata</h2>
+    <ul>
+      <li>When uploading an object you can assign metadata</li>
+      <li>Metadata is stored as Name-value (key-value) pairs</li>
+      <li>User-defined metadata names must begin with "x-amz-meta-"</li>
+      <li>
+        Metadata retrieved when fetching the object, some default metadata is
+        provided by AWS such as content-length and content-type
+      </li>
+      <li>
+        Tags are also key-value pairs but allow us to apply fine-grained
+        permissions such as can only access objects with a tag value of X or for
+        analytic purposes
+      </li>
+      <li>
+        You can not search/filter by metadata or object tags, could use an
+        external index using something such as DynamoDB to provide this
+        requirement, match S3 indexes to tags/metadata that can be searched.
+      </li>
+    </ul>
   </body>
 </html>

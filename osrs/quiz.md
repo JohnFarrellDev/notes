@@ -6,3 +6,4 @@
    - Paterdomus
 4. Jute Seeds. 1 what farming level is required to grow jute seeds, 2 what do you protect a jute seed patch with and the amount for a bonus point. (quickest to correct answer gets a bonus point, time limit?)
 5. Name as many pubs in RuneScape as possible in 2 minutes.
+6. Name as many people that can teleport you to the essence mine as possible.
