@@ -138,49 +138,6 @@
       <li>New public buckets or access point policies</li>
     </ul>
 
-    <h3>Encryption</h3>
-    <ul>
-      <li>SSE-S3: Encrypts S3 objects using keys handled and managed by AWS</li>
-      <li>
-        SSE-KMS: Leverages AWS key management service to manage encryption keys
-      </li>
-      <li>SSE-C: manage your own encryption keys</li>
-      <li>Client side encryption</li>
-    </ul>
-
-    <h4>SSE-S3</h4>
-    <ul>
-      <li>Keys used to encrypt data are handled by S3</li>
-      <li>Object is encrypted server side</li>
-      <li>AES-256 encryption used</li>
-      <li>Must set header: "x-amz-server-side-encryption": "AES256"</li>
-    </ul>
-
-    <h4>SSE-KMS</h4>
-    <ul>
-      <li>SSE-KMS: encryption using keys handled and managed by KMS</li>
-      <li>KMS advantages: user control + audit trail</li>
-      <li>Object is encrypted server side</li>
-      <li>Must set header: "x-amz-server-side-encryption": "aws:kms"</li>
-    </ul>
-
-    <h4>SSE-C</h4>
-    <ul>
-      <li>Server side encryption</li>
-      <li>Amazon S3 does not store the key, you provide the key to AWS</li>
-      <li>Must use HTTPS as submitting the encryption key in the request</li>
-      <li>Keys stored client side</li>
-      <li>Key must be provided when retrieving the files from S3</li>
-    </ul>
-
-    <h4>Client Side Encryption</h4>
-    <ul>
-      <li>Encrypt object before sending the object to S3</li>
-      <li>Can utilize Amazon S3 Encryption Client</li>
-      <li>Clients muse decrypt the key themselves when retrieving the data</li>
-      <li>Customer fully manages the keys and encryption cycle</li>
-    </ul>
-
     <h3>Other</h3>
     <ul>
       <li>Supports VPC endpoints for instances in VPC without WWW internet</li>
@@ -212,17 +169,6 @@
       <li>The website url will be the <bucket-name>.s3-website-<aws-region>.amazonaws.com</li>
     </ul>
   </body>
-
-  <h2>S3 CORS</h2>
-  <ul>
-    <li>CORS - Cross Origin Resource Sharing</li>
-    <li>An origin is a scheme (protocol), a host (domain) and a port</li>
-    <li>HTTP is the scheme, example.com is the domain, port is 443 for HTTPS and 80 for HTTP</li>
-    <li>Web browser based mechanism to allow request to other origins while visiting main origin</li>
-    <li>URL can request resources from another URL if the other URL allows CORS using CORS Headers (access-control-allow-origin)</li>
-    <li>If a client does a cross-origin request on our S3 bucket we need the correct CORS headers</li>
-    <li>You can allow a specific origin or all using *</li>
-  </ul>
 
   <h2>S3 Consistency Model</h2>
   <ul>

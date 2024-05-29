@@ -11,5 +11,168 @@
     <a href="./index.html">Home</a>
 
     <h1>S3 Security</h1>
+
+    <h2>Encryption</h2>
+
+    <ul>
+      <li>SSE-S3: Encrypts S3 objects using keys handled and managed by AWS</li>
+      <li>
+        SSE-KMS: Leverages AWS key management service to manage encryption keys
+      </li>
+      <li>SSE-C: manage your own encryption keys</li>
+      <li>Client side encryption</li>
+    </ul>
+
+    <h4>SSE-S3</h4>
+    <ul>
+      <li>Keys used to encrypt data are handled by S3</li>
+      <li>Object is encrypted server side</li>
+      <li>AES-256 encryption used</li>
+      <li>Must set header: "x-amz-server-side-encryption": "AES256"</li>
+    </ul>
+
+    <h4>SSE-KMS</h4>
+    <ul>
+      <li>SSE-KMS: encryption using keys handled and managed by KMS</li>
+      <li>KMS advantages: user control + audit trail</li>
+      <li>Object is encrypted server side</li>
+      <li>Must set header: "x-amz-server-side-encryption": "aws:kms"</li>
+    </ul>
+
+    <h4>SSE-C</h4>
+    <ul>
+      <li>Server side encryption</li>
+      <li>Amazon S3 does not store the key, you provide the key to AWS</li>
+      <li>Must use HTTPS as submitting the encryption key in the request</li>
+      <li>Keys stored client side</li>
+      <li>Key must be provided when retrieving the files from S3</li>
+    </ul>
+
+    <h4>Client Side Encryption</h4>
+    <ul>
+      <li>Encrypt object before sending the object to S3</li>
+      <li>Can utilize Amazon S3 Encryption Client</li>
+      <li>Clients muse decrypt the key themselves when retrieving the data</li>
+      <li>Customer fully manages the keys and encryption cycle</li>
+    </ul>
+
+    <h4>DSSE-KMS</h4>
+
+    <p>
+      By default all buckets use SSE-S3 but you can change this to a different
+      encryption method. You can also set a bucket policy to refuse any API call
+      with the wrong encryption headers.
+    </p>
+
+    <h2>S3 CORS</h2>
+    <ul>
+      <li>CORS - Cross Origin Resource Sharing</li>
+      <li>An origin is a scheme (protocol), a host (domain) and a port</li>
+      <li>
+        HTTP is the scheme, example.com is the domain, port is 443 for HTTPS and
+        80 for HTTP
+      </li>
+      <li>
+        Web browser based mechanism to allow request to other origins while
+        visiting main origin
+      </li>
+      <li>
+        URL can request resources from another URL if the other URL allows CORS
+        using CORS Headers (access-control-allow-origin)
+      </li>
+      <li>
+        If a client does a cross-origin request on our S3 bucket we need the
+        correct CORS headers
+      </li>
+      <li>You can allow a specific origin or all using *</li>
+    </ul>
+
+    <h2>S3 MFA Delete</h2>
+
+    <ul>
+      <li>
+        MFA forces user to generate a code on a device before doing important
+        operations on S3
+      </li>
+      <li>
+        Need MFA to delete an object version or suspend versioning on the bucket
+      </li>
+      <li>
+        Do not need MFA for enabling versioning or listing deleted versions
+      </li>
+      <li>
+        Only the bucket owner (root account) can enable/disable MFA-Delete
+      </li>
+      <li>MFA-Delete can only be enabled using the CLI</li>
+    </ul>
+
+    <h2>S3 Access Logs</h2>
+
+    <ul>
+      <li>
+        Any request to an S3 bucket automatically logs all requests into another
+        bucket
+      </li>
+      <li>Data can be analyzed</li>
+      <li>
+        Never set your logging button to be your monitored bucket (creates an
+        infinite logging loop)
+      </li>
+      <li>
+        Turn on server access logging in AWS console and select a target bucket
+      </li>
+      <li>
+        Permissions (ACL) are automatically enabled on logging bucket to allow
+        monitor bucket to Write
+      </li>
+    </ul>
+
+    <h2>S3 Pre-signed URLs</h2>
+
+    <ul>
+      <li>Pre-signed URLS using SDK or CLI</li>
+      <li>For downloads easier to use CLI</li>
+      <li>For upload is harder and must use the SDK</li>
+      <li>
+        Valid for a default of 3600 seconds, can change timeout with
+        --expires-in &lt;seconds&gt;
+      </li>
+      <li>
+        Users given a pre-signed URL inherit the permissions of the person who
+        generated the URL for GET/PUT
+      </li>
+      <li>
+        Use case is to allow temporary permissions to interact with your bucket
+        (GET or PUT)
+      </li>
+    </ul>
+
+    <h2>S3 Access Points</h2>
+    <p>
+      Works like a bucket policy but is applied to a bucket prefix such as
+      /finance/. Can then allow our finance users to have read and write
+      permissions for all objects found within the bucket within the finance
+      prefix but not for data found within /sales/.
+    </p>
+    <p>Each access point has its own DNS name and an access point policy.</p>
+    <p>
+      We can define the access point to be accessible only from within a VPC so
+      only our EC2 instance can access for example and not directly from the
+      internet, you create a VPC endpoint to access the Access Point.
+    </p>
+
+    <h2>S3 Object Lambda</h2>
+    <p>
+      Can use AWS Lambda Functions to change the object before it is retrieved
+      by the caller application. Only one bucket is needed on top of which we
+      create our S3 Access Point and S3 Object Lambda Access Points but the
+      caller retrieves different data.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/s3-object-lambda.png"
+    />
+    <p>
+      Use cases are to often transform data, watermark an image or redact PII.
+    </p>
   </body>
 </html>
