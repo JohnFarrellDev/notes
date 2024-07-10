@@ -11,5 +11,190 @@
     <a href="./index.html">Home</a>
 
     <h1>AWS CLI, SDK, IAM Roles and Policies</h1>
+
+    <h2>EC2 Instance Metadata (IMDS)</h2>
+    <ul>
+      <li>
+        EC2 instances can learn about themselves without using an IAM role for
+        that purpose
+      </li>
+      <li>
+        URL is http://169.254.169.254/latest/meta-data/ and can be accessed by
+        IMDSv1 directly
+      </li>
+      <li>
+        IMDSv2 however is enabled by default and is more secure, you access the
+        metadata with 2 steps.
+        <ul>
+          <li>
+            First you make a put request to
+            http://169.254.196.254/latest/api/token which returns a session
+            token
+          </li>
+          <li>
+            You then make a second call to
+            http://169.254.169.254/latest/meta-data/profile and pass the token
+            in from the previous step
+          </li>
+        </ul>
+      </li>
+      <li>
+        Can retrieve the IAM Role name from the metadata, CANNOT retrieve the
+        IAM policy
+      </li>
+      <li>Metadata is info about instance</li>
+    </ul>
+
+    <h2>AWS CLI Profiles</h2>
+    <p>
+      You may have multiple AWS accounts. Your command line AWS config and
+      credentials will have your AWS access key and secret access key, if you
+      have multiple accounts you can create multiple profiles each with their
+      own unique keys.
+    </p>
+    <p>
+      You create a new profile by running
+      <code>aws configure --profile <new-profile-name></new-profile-name></code>
+    </p>
+    <p>
+      One of your accounts can be set as your default account, this information
+      is found within credentials and config within your root .aws folder.
+    </p>
+
+    <h2>AWS CLI with MFA</h2>
+    <p>
+      You may want to utilise MFA when using the CLI or SDK. To this you need to
+      create a token from the CLI.
+    </p>
+    <p>
+      You make a request to STS (Security Token Service) GetSessionToken, the
+      command looks like
+      <code
+        >aws sts get-session-token --&lt;mfa ARN code&gt; &lt;serial number from
+        MFA app&gt; --duration-seconds &lt;duration-in-seconds (3600)&gt;</code
+      >
+    </p>
+    <p>
+      After the running command you will get a response with an AccessKeyId,
+      SecretAccessKey and SessionToken.
+    </p>
+    <p>
+      You now configure your AWS profile with these values which will work until
+      the SessionToken expires.
+    </p>
+
+    <h2>AWS SDK Overview</h2>
+    <p>
+      SDK stands for software development kit, it means we can write application
+      code that calls to AWS operations in a variety of languages such as Java,
+      Go, .NET, ruby, node etc.
+    </p>
+    <p>The AWS CLI actually uses the Python SDK known as boto3.</p>
+    <p>We commonly use the SDK when we utilise lambda functions.</p>
+    <p>
+      If we do not specify a region in the SDK us-east-1 is used by default.
+    </p>
+
+    <h2>Exponential Backoff and Service Limit Increase</h2>
+    <p>
+      There are API rate limits, for example the EC2 API has a limit of 100
+      calls per second, GetObject on S3 has a limit of 5,500 GET per second per
+      prefix. If we go over we will get a error, if we get intermittent errors
+      we can implement an exponential backoff. For consistent errors we can
+      require a limit increase before throttling occurs from AWS.
+    </p>
+    <p>
+      We also have service quota limits, for example 1,125 vCPU instances are
+      allowed but using the ServiceQuota API the limit can be increased.
+    </p>
+    <p>
+      With exponential backoff a retry mechanism is already included in the AWS
+      SDK, must implement yourself if using the API directly. A retry only
+      occurs on a 5xx error and not a 4xx error. Between each failed request the
+      retry time doubles.
+    </p>
+
+    <h2>AWS Credentials Provider and Chain</h2>
+    <p>The CLI will look for credentials in the following order:</p>
+    <ul>
+      <li>Command line options: --region, --output and --profile</li>
+      <li>
+        Environment variables: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
+        AWS_SESSION_TOKEN
+      </li>
+      <li>CLI credentials file from aws configure</li>
+      <li>CLI configuration file from aws configure</li>
+      <li>Contain credentials for ECS tasks</li>
+      <li>Instance profile credentials for EC2 instance profiles</li>
+    </ul>
+    <p>
+      SDK will do the same but start with java system properties (if using java
+      SDK).
+    </p>
+    <p>
+      Never store credentials in code, using the credential inheritance chain.
+    </p>
+
+    <h2>AWS Signature v4 Signing (Sigv4)</h2>
+    <ul>
+      <li>
+        When calling AWS API we sign the request (some don't require to be
+        signed such as reading a public object) using our access key and secret
+        key
+      </li>
+      <li>If using SDK or CLI the request is already signed for you</li>
+      <li>You need to sign a request use SigV4</li>
+      <li>
+        Can sign using HTTP passing the signature in the authorization header
+      </li>
+      <li>
+        The second option is to use a query string X-Amz-Signature when making
+        the request
+      </li>
+    </ul>
+
+    <h2>IAM Roles and Policies</h2>
+    <ul>
+      <li>AWS has pre-built policies</li>
+      <li>You can create your own policies</li>
+      <li>
+        AWS has a handful visual editor for creating the policy JSON object
+      </li>
+      <li>
+        There is also an AWS policy generator which uses a form to create the
+        JSON policy
+      </li>
+      <li>You can also view a policy summary within AWS</li>
+    </ul>
+
+    <h2>AWS Policy Simulator</h2>
+    <ul>
+      <li>An online tool to test your policy</li>
+      <li>Create user and try and call AWS APIs</li>
+      <li>Policy simulator will show if permission is allowed or denied</li>
+      <li>If denied can click to see the policy for denial reason</li>
+    </ul>
+
+    <h2>AWS CLI Dry Run</h2>
+    <ul>
+      <li>
+        Sometimes we want to test we have permissions without actually running
+        the commands (save on cost)
+      </li>
+      <li>
+        Some AWS CLI commands contain a --dry-run option to simulate API calls
+      </li>
+      <li>
+        Tells us if operation would have succeeded or failed without actually
+        running the operation
+      </li>
+    </ul>
+
+    <h2>AWS CLI STS Decode</h2>
+    <ul>
+      <li>AWS API error messages are encoded</li>
+      <li>AWS messages can be decoded with AWS STS</li>
+      <li>The message is JSON formatted</li>
+    </ul>
   </body>
 </html>
