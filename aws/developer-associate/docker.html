@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>ECS, ECR and Fargate</h1>
+
+    <h2>What is Docker</h2>
+    <p>
+      A software platform for deploying apps, Docker packages applications in
+      containers that can run on any OS. This ensures that applications can run
+      on any machine without compatibility issues, making them predictable, easy
+      to maintain, and deploy. Images are stored in Docker repositories such as
+      hub.docker.com (public) or Amazon ECR (private - Elastic Container
+      Registry). Docker is similar to virtualization, but resources can be
+      shared across multiple containers.
+    </p>
+
+    <p>To manage containers, a container management platform is needed:</p>
+    <ul>
+      <li>ECS: Amazon's platform</li>
+      <li>Fargate: Amazon's serverless platform</li>
+      <li>EKS: Amazon's managed Kubernetes platform</li>
+    </ul>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/docker-image-pipeline.png"
+    />
+
+    <p>AWS docker services:</p>
+    <ul>
+      <li>Elastic Container Service (ECS)</li>
+      <li>Elastic Kubernetes Service (EKS)</li>
+      <li>Fargate (serverless container platform)</li>
+      <li>Elastic Container Registry (ECR) - store container images</li>
+    </ul>
+
+    <h2>ECS Clusters</h2>
+    <p>
+      ECS Clusters are logical groupings of EC2 instances. EC2 instances run the
+      ECS agent (a Docker container), which registers the instance to the ECS
+      cluster. These EC2 instances use a special AMI made for ECS.
+    </p>
+
+    <h2>Amazon ECS</h2>
+    <h3>AWS ECS - EC2 Launch Type</h3>
+    <p>
+      Launch Docker containers on AWS which is launching ECS Tasks on ECS
+      Clusters.
+    </p>
+    <p>
+      With the EC2 launch type your must provision and maintain the EC2
+      infrastructure, each EC2 instance must run the ECS agent to register as
+      part of the ECS cluster.
+    </p>
+    <p>AWS then takes care of starting and stopping the containers.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ecs-ec2-launch-type.png"
+    />
+
+    <h3>Fargate Launch Type</h3>
+    <p>
+      Do not need to provision the infrastructure as Fargate is serverless, you
+      just create task definitions and AWS manage the infrastructure for you.
+    </p>
+
+    <h3>IAM Roles for ECS</h3>
+    <p>
+      The EC2 instance profile is used by the ECS agent to make API calls to the
+      ECS service, send container logs to CloudWatch Logs, and pull Docker
+      images from ECR.
+    </p>
+    <p>
+      An ECS task role allows each task to have a specific role, enabling the
+      use of different roles for the various ECS services you run. Task role is
+      defined in the task definition.
+    </p>
+
+    <h3>Load Balancer Integrations</h3>
+    <p>
+      An ALB can be put in front of our ECS cluster to expose our tasks via an
+      HTTPS endpoint and then forwarded to the ECS Task.
+    </p>
+    <p>
+      The NLB is only recommended for high throughput or performance use cases
+      or to pair with an AWS Private Link.
+    </p>
+    <p>
+      The classic load balancer is not recommended and does not integrate with
+      Fargate.
+    </p>
+
+    <h3>ECS Data Volumes</h3>
+    <h4>EFS</h4>
+    <p>
+      Mount EFS file systems onto ECS tasks, works for both EC2 land Fargate
+      launch types.
+    </p>
+    <p>
+      Tasks running an any AZ will share the same data in the EFS file system.
+    </p>
+    <p>Fargate + EFS = complexly serverless stack</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ecs-with-efs.png"
+    />
+    <p>S3 cannot be mounted as a file system!</p>
+    <h4>EBS Volumes</h4>
+    <p>
+      The volume is already mounted onto the EC2 instance, allowing your Docker
+      containers to mount the EBS volume and extend the storage capacity of your
+      task. However, if your task moves from one instance to another, it won't
+      have access to the same EBS volume. A common use case is to mount a data
+      volume between different containers on the same instance, extending the
+      temporary storage of a task.
+    </p>
+    <h4>Bind Mounts</h4>
+    <p>
+      This setup works for both EC2 tasks (using local instance storage - tied
+      to the life of the instance) and Fargate tasks (which get 20-200 GiB for
+      volume mounts). It is used to share ephemeral storage between multiple
+      containers that are part of the same ECS task. This approach is great for
+      the "sidecar" container pattern, such as for handling logs, providing a
+      clear separation of concerns.
+    </p>
+
+    <h2>ECS Auto Scaling</h2>
+    <p>
+      ECS Auto Scaling scales using AWS Application Auto Scaling. Can scale on
+      Average CPU utilization, Average Memory Utilization, ALB Request Counts
+      Per target.
+    </p>
+    <p>
+      ECS Auto Scaling tracks CPU and RAM usage in CloudWatch at the ECS service
+      level. It supports three scaling methods: Target Tracking, which targets a
+      specific average CloudWatch metric; Step Scaling, which scales based on
+      CloudWatch alarms; and Scheduled Scaling, which scales based on
+      predictable changes.
+    </p>
+    <p>
+      ECS server scaling (task level) differs from EC2 auto scaling (instance
+      level). Fargate auto scaling is much easier to set up due to its
+      serverless nature. To scale ECS and EC2 simultaneously, use a cluster
+      capacity provider.
+    </p>
+    <p>
+      A capacity provider is used with a cluster to determine the infrastructure
+      that a task runs on. For ECS and Fargate users, the Fargate and
+      Fargate_Spot capacity providers are automatically added. For ECS on EC2,
+      you need to associate the capacity provider with an auto scaling group,
+      allowing the capacity provider to provision instances for the ASG.
+    </p>
+    <p>
+      You can setup your own ASG to spin up more EC2s based on various metrics
+      but it is preferred to use a capacity provider as it syncs the instances
+      and tasks better.
+    </p>
+
+    <h2>ECS Rolling Update</h2>
+    <p>
+      When updating a deployed version we can define a minimum healthy
+      percentage and maximum percentage of our tasks within our cluster.
+    </p>
+    <p>
+      If our minimum healthy percentage is 100% and our maximum percentage is
+      125% then to update all our tasks from v1 to v2 would take 4 steps of
+      terminating 25% of our old tasks and replacing them with the new tasks.
+    </p>
+    <p>The advantage of this is to avoid any downtime.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ecs-rolling-update.png"
+    />
+
+    <h2>ECS Task Definitions</h2>
+    <p>
+      ECS Task Definitions are metadata in JSON format that tell ECS how to run
+      a Docker container. They contain information about:
+    </p>
+    <ul>
+      <li>Image name</li>
+      <li>Port binding for container and host</li>
+      <li>Memory and CPU required</li>
+      <li>Environment variables</li>
+      <li>Networking information</li>
+      <li>IAM Role</li>
+      <li>Logging configuration (CloudWatch for example)</li>
+    </ul>
+    <p>Can define upto 10 containers in a task definition.</p>
+    <h3>Load Balancing (EC2 Launch Type)</h3>
+    <p>
+      We get a Dynamic Host Port Mapping if you only define the container port
+      in the task definition.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ecs-dynamic-port-mapping.png"
+    />
+    <p>The ALB automatically finds the correct port to connect to.</p>
+    <p>
+      You must allow on the EC2 instance's security group any port from the ALB
+      security group.
+    </p>
+    <h3>Load Balancing (Fargate Launch Type)</h3>
+    <p>Each task has a unique private IP.</p>
+    <p>Only define the container port, host port is not applicable.</p>
+    <p>
+      Each ECS task is connected to an ENI which the ALB connects to, the ENI
+      must allow the connection on specific ports from the ALB.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ecs-load-balancing-fargate.png"
+    />
+    <h3>IAM Roles</h3>
+    <p>There is one IAM role per Task Definition.</p>
+    <p>
+      Each ECS task created by the definition inherits the role, the role is
+      defined at the task level not the service level!.
+    </p>
+    <h3>Environment Variables</h3>
+    <p>
+      Can be hardcoded if they are not sensitive such as URLs. If they are
+      sensitive can utilise SSM Parameter store or Secrets Manager, from the ECS
+      task definition you reference the parameter store or secrets manager which
+      then allows the values to be fetched at run times. The values can also be
+      bulk loaded from S3 at runtime.
+    </p>
+
+    <h2>EC2 Task Placement</h2>
+    <p>
+      ECS Task Placement and Constraints determine how and where tasks are
+      placed on EC2 instances. When launching (or removing) a task of type EC2,
+      ECS must determine placement within the constraints of CPU, memory, and
+      available ports. When a service scales down, ECS needs to decide which
+      task to terminate. To assist with this, you can define a task placement
+      strategy and task placement constraints. This applies only to ECS with
+      EC2.
+    </p>
+    <p>Task placement strategies are a best effort:</p>
+    <ol>
+      <li>
+        Identify the instances that satisfy the CPU, memory, and port
+        requirements.
+      </li>
+      <li>
+        Identify the instances that satisfy the task placement constraints.
+      </li>
+      <li>
+        Identify the instances that satisfy the task placement strategies.
+      </li>
+      <li>Select the instances for task placement.</li>
+    </ol>
+    <h3>Task Placement Strategies</h3>
+    <ul>
+      <li>
+        <strong>Binpack:</strong> Places tasks based on the least available
+        amount of CPU or memory, minimizing the number of instances in use to
+        save money. It will place as many containers as possible on one instance
+        before creating a new instance.
+      </li>
+      <li>
+        <strong>Random:</strong> Places tasks randomly across selected
+        instances.
+      </li>
+      <li>
+        <strong>Spread:</strong> Places tasks evenly based on a specified value
+        such as availability zones, which is good for availability.
+      </li>
+    </ul>
+    <p>
+      You can mix task placement strategies, for example, spread on AZ and then
+      use binpack.
+    </p>
+    <h3>Task Placement Constraints</h3>
+    <ul>
+      <li>
+        <strong>distinctInstance:</strong> Places each task on a different
+        container instance.
+      </li>
+      <li>
+        <strong>memberOf:</strong> Places tasks on instances that satisfy an
+        expression using the cluster query language, such as placing containers
+        only on t2.micro instances.
+      </li>
+    </ul>
+
+    <h2>Amazon ECR</h2>
+    <p>
+      ECR (Elastic Container Registry) is a Docker image repository for private
+      and public images. Access is controlled through IAM (permission errors are
+      typically due to policy issues).
+    </p>
+    <p>ECR is fully integrated with ECS and backed by S3.</p>
+    <p>
+      ECR supports image vulnerability scanning, versioning, image tags, image
+      lifecycle...
+    </p>
+    <p>AWS CLI login commands may be asked in the exam:</p>
+    <ul>
+      <li>
+        AWS CLI v1 login command: Run the output of
+        <code
+          >aws ecr get-login --no-include-email --region &lt;region&gt;</code
+        >
+      </li>
+      <li>
+        AWS CLI v2 login command uses pipes:
+        <code
+          >aws ecr get-login-password --region &lt;region&gt; | docker login
+          --username AWS --password-stdin
+          1234567890.dkr.ecr.&lt;region&gt;.amazonaws.com</code
+        >
+      </li>
+    </ul>
+    <p>Common Docker commands for ECR:</p>
+    <ul>
+      <li>
+        Docker push:
+        <code
+          >docker push
+          1234567890.dkr.&lt;region&gt;.amazonaws.com/demo:latest</code
+        >
+      </li>
+      <li>
+        Docker pull:
+        <code
+          >docker pull
+          1234567890.dkr.&lt;region&gt;.amazonaws.com/demo:latest</code
+        >
+      </li>
+    </ul>
+    <p>
+      Services require IAM permissions to pull from ECR if building images from
+      ECR.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-ecs-ecr.png"
+    />
+
+    <h2>AWS Copilot</h2>
+    <p>
+      CLI (or YAML file) tool to build, release and operate production-ready
+      containerized apps.
+    </p>
+    <p>
+      Run your apps using AppRunner, ECS and Fargate. The aim is to help you
+      focus on building the app and not infrastructure.
+    </p>
+    <p>
+      Automatically provisions all required infrastructure for your
+      containerized apps.
+    </p>
+    <p>
+      Gives you access to automated deployments with one command using
+      CodePipeline.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-copilot.png"
+    />
+
+    <h2>AWS EKS</h2>
+    <p>
+      EKS stands for Elastic Kubernetes Service, it is a way to launch a managed
+      Kubernetes cluster on AWS.
+    </p>
+    <p>
+      It is an alternative to ECS but gives us a way to launch containers on
+      AWS. Kubernetes is open source, it has a similar goal to ECS but has a
+      different API.
+    </p>
+    <p>
+      EKS supports EC2 if you want to deploy worker nodes or Fargate mode to
+      deploy serverless clusters.
+    </p>
+    <p>
+      The use case for EKS is if you already use Kubernetes at your company or
+      prefer the API.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-eks.png"
+    />
+    <h3>Node Types</h3>
+    <h4>Managed Node Groups</h4>
+    <p>
+      Create and manage Nodes for you, nodes are part of an ASG managed by EKS.
+      Supports On-Demand or Spot Instances.
+    </p>
+    <h4>Self-Managed Nodes</h4>
+    <p>
+      Nodes created by you and registered to the EKS cluster and managed by an
+      ASG.
+    </p>
+    <p>Can still use the prebuilt AMI that is optimized for EKS.</p>
+    <h4>Fargate</h4>
+    <p>No maintenance required, no nodes managed.</p>
+    <h3>Data Volumes</h3>
+    <p>
+      Need to specify StorageClass manifest on your EKS cluster, leverages a
+      COntainer Storage INterface compliant driver, support for EBS, EFS (with
+      Fargate), FSx for Lustre, FSx for NetApp ONTAP.
+    </p>
+  </body>
+</html>
