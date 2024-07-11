@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>CloudFront (CDN)</h1>
+
+    <h2>Overview</h2>
+    <p>
+      A Content Delivery Network (CDN) improves read performance by caching
+      content at edge locations, enhancing user experience. Currently, there are
+      216 points of presence (edge locations) globally. Additionally, CDNs
+      provide DDoS protection and integrate seamlessly with Shield and AWS Web
+      Application Firewall. CloudFront can expose external HTTPS endpoints and
+      communicate with internal HTTPS backends. Users interact with the nearest
+      edge locations, significantly speeding up data retrieval if the data is
+      already cached there.
+    </p>
+
+    <h3>CloudFront - Origins</h3>
+    <p>
+      Amazon S3 buckets are used for distributing files, using CloudFront these
+      files can be cached at the edge. Enhanced security is achieved through
+      CloudFront Origin Access Identity (OAI), which ensures that S3 is publicly
+      accessible only to specified edge locations. CloudFront can also serve as
+      an ingress point for uploading files to S3, further leveraging OAI for
+      secure and efficient file distribution.
+    </p>
+    <p>
+      A Custom Origin (HTTP Endpoint) can also be cached, these HTTP endpoints
+      include various sources such as an Application Load Balancer, an EC2
+      instance, or an S3 website (which requires enabling the bucket as a static
+      S3 website first). It can also be any HTTP backend of your choice,
+      providing flexibility in handling web traffic and content delivery.
+    </p>
+    <p>
+      Geo Restriction allows you to restrict access to your distribution by
+      whitelisting or blacklisting countries. The country is determined using a
+      third-party Geo-IP database. This feature is particularly useful for
+      complying with copyright laws regarding access to content.
+    </p>
+    <p>
+      Use S3 cross region replication when you want to have content at
+      low-latency in a few select regions.
+    </p>
+    <p>
+      Use CloudFront if you want static content available everywhere at low
+      latency.
+    </p>
+
+    <h2>Caching and Caching Policies</h2>
+    <p>
+      The cache lives at each CloudFront Edge Location, the CloudFront
+      identifies each object in the cache using the Cache Key.
+    </p>
+    <p>
+      On a request to the cache the cache first checks if it has the object and
+      if the object has not expired based on TTL, if the object is not present
+      or expired then the cache calls to the origin. This is a cache miss and we
+      want to minimize them.
+    </p>
+    <p>
+      Key by default consists of the hostname + resource portion of the URL,
+      sometimes the key needs to be more complex such as using user details or
+      geo-location information. To do this we create a cache policy which can
+      utilise HTTP headers, cookies and query strings.
+    </p>
+    <p>
+      In the Cache Policy we can control the TTL using the Cache-Control header
+      or Expires header.
+    </p>
+    <p>
+      All data used for the Cache Policy to create the Cache Key will also be
+      included and forwarded in the origin request.
+    </p>
+
+    <h3>Headers</h3>
+    <p>
+      If we define a "NONE" cache policy for the headers then none of the
+      headers are cached and none are forwarded except default. This gives us
+      the best caching performance.
+    </p>
+    <p>
+      If you want to include specified headers in the Cache Key you can set a
+      White List, these headers are forwarded to the origin.
+    </p>
+
+    <h3>Query String</h3>
+    <p>Query string works the same way but has two extra options.</p>
+
+    <p>ALL which includes all query strings in the cache key.</p>
+    <p>
+      Include All-Except which includes all the query strings in the Cache Key
+      except the specified list.
+    </p>
+    <p>NONE and Whitelist behave the same as for headers.</p>
+    <p>
+      ALL gives the worst performance as there is more work to generate the
+      Cache Key.
+    </p>
+
+    <h3>Origin Request Policy</h3>
+    <p>
+      You can include headers that are forwarded to the origin but not included
+      in the Cache Key, this is defined in the Origin Request Policy which is
+      separate from the Cache Policy. Maybe the origin requires the user-agent
+      which you pass through as a header.
+    </p>
+
+    <h2>Cache Invalidations</h2>
+    <p>
+      The CDN may continue to deliver stale content after an origin updates as
+      CloudFront does not know about the update and will only retrieve new
+      content after the TTL expires.
+    </p>
+    <p>
+      You can force an entire or partial cache refresh (bypassing the TTL) by
+      performing a CloudFront Invalidation.
+    </p>
+    <p>For example can invalidate a whole path <code>/images/*</code></p>
+
+    <h2>Cache Behaviors</h2>
+    <p>
+      Can configure different settings based on a different URL path for example
+      could cache the path <code>images/*.jpg</code>.
+    </p>
+    <p>
+      Can route to a different origin based on the content type or path pattern.
+    </p>
+
+    <h2>ALB as an Origin</h2>
+    <p>
+      CloudFront can utilise an EC2 instance as the origin. The security group
+      on the instance must allow network requests from the ClodFront IP address.
+    </p>
+    <p>
+      Alternatively CloudFront can point at an ALB which accepts the public IPs
+      from CloudFront, in turn the EC2 instance can be private and only allow
+      requests from the ALB instance.
+    </p>
+
+    <h2>Geo Restriction</h2>
+    <p>
+      Can restrict who access to your distribution, commonly done for copyright
+      law reasons. This can be enforced using an Allowlist or Blocklist,
+      implementation is done by checking incoming IPs against a 33rd party
+      Geo-IP database.
+    </p>
+
+    <h2>CloudFront Signed Url/Cookies</h2>
+    <p>Want to distribute content but only to premium users.</p>
+    <p>
+      This can be implemented using a CloudFront Signed URL/Cookie. We attach a
+      policy with URL expiration, IP ranges to access the data, trusted Signers
+      (which AWS accounts can create signed URLs).
+    </p>
+    <p>
+      How long should the URL be valid for? Shared content, such as a movie,
+      should have a short validity period, while private content for a user can
+      be valid for years.
+    </p>
+    <p>
+      Signed URLs provide access to individual files, whereas signed cookies
+      allow access to multiple files with a single cookie.
+    </p>
+    <p>
+      CloudFront Signed URL allows access to a path regardless of the origin. It
+      uses an account-wide key-pair, managed only by the root account. It can
+      filter access by IP, path, date, and expiration, and can leverage caching
+      features.
+    </p>
+    <p>
+      S3 pre-signed URLs issue a request as the person who pre-signed the URL,
+      using the IAM key of the signing IAM principal. These URLs have a limited
+      lifetime.
+    </p>
+
+    <h2>Signed URL Process</h2>
+    <p>
+      There are two types of signers for CloudFront: Trusted key groups and AWS
+      accounts containing a CloudFront key pair. Trusted key groups are
+      recommended as they can leverage APIs to create and rotate keys, using IAM
+      for API security. AWS account key pairs require key management using the
+      root account and the AWS console, which is not recommended.
+    </p>
+    <p>
+      You can create one or more trusted key groups in a CloudFront
+      distribution. Additionally, you can generate your own public/private keys,
+      where the private key is used by applications (such as an EC2 instance) to
+      sign URLs and the public key is uploaded to CloudFront to verify URLs.
+    </p>
+
+    <h2>CloudFront Advanced Concepts</h2>
+    <h3>Pricing</h3>
+    <p>
+      The cost of data per edge location varies. The more data you transfer out
+      of a location, the lower the cost per GB. You can also reduce the number
+      of edge locations to lower costs. There are three price classes:
+    </p>
+    <ul>
+      <li>All regions: Most expensive, best performance.</li>
+      <li>200: Most regions, but excludes the most expensive regions.</li>
+      <li>100: Only the least expensive regions.</li>
+    </ul>
+    <h3>Multiple Origins</h3>
+    <p>
+      You can route to different origins based on content type. This can be
+      configured based on path patterns (e.g., /images/*). Depending on the
+      path, requests could be directed to either an S3 bucket or an Application
+      Load Balancer (ALB).
+    </p>
+    <h3>Origin Groups</h3>
+    <p>
+      Origin groups increase availability and enable failover. If the primary
+      origin group fails, traffic can failover to a second origin. For example,
+      this can involve two EC2 instances or S3 buckets in different regions that
+      have replication between the buckets.
+    </p>
+    <h3>Field Level Encryption</h3>
+    <p>
+      Field level encryption protects sensitive information throughout the stack
+      by adding an additional layer around HTTPS. Sensitive information is
+      encrypted at the edge, closer to the user, using asymmetric encryption.
+      This is particularly important for encrypting sensitive POST requests,
+      such as bank information, and can encrypt up to 10 fields. You specify the
+      public key to encrypt the data at the edge location, while the web server
+      has the private key to decrypt the data.
+    </p>
+
+    <h2>Real Time Logs</h2>
+    <p>
+      Is possible to get all real-time requests received by CloudFront sent to a
+      Kinesis Data Stream to monitor, analyse and take actions by forwarding the
+      records to AWS lambda.
+    </p>
+    <p>
+      Can choose a sampling rate so only a % of requests sent to Kinesis, can
+      also set specific patterns to log such as only requests to /images or for
+      certain cache behavior.
+    </p>
+  </body>
+</html>
