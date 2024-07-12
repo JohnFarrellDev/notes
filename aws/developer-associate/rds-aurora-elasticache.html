@@ -259,7 +259,7 @@
       so there will be very infrequent cache hits.
     </p>
     <p>There are multiple caching strategies if you do choose to cache.</p>
-    <h4>Lazy Loading (Cache-Aside, Lazy Population)</h4>
+    <strong>Lazy Loading (Cache-Aside, Lazy Population)</strong>
     <p>
       Only requested data is cached, after a cache miss the data fetched from
       rds is added to the cache, future requests for the same data then hit the
@@ -298,7 +298,7 @@
     <img
       src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/lazy-loading-cache.png"
     />
-    <h4>Write Through</h4>
+    <strong>Write Through</strong>
     <p>
       When we write to the RDS we also write to the cache after first writing to
       the RDS. This mean that every created or updated item will be added to the

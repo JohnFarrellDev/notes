@@ -98,7 +98,7 @@
     </p>
 
     <h3>ECS Data Volumes</h3>
-    <h4>EFS</h4>
+    <strong>EFS</strong>
     <p>
       Mount EFS file systems onto ECS tasks, works for both EC2 land Fargate
       launch types.
@@ -111,7 +111,7 @@
       src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ecs-with-efs.png"
     />
     <p>S3 cannot be mounted as a file system!</p>
-    <h4>EBS Volumes</h4>
+    <strong>EBS Volumes</strong>
     <p>
       The volume is already mounted onto the EC2 instance, allowing your Docker
       containers to mount the EBS volume and extend the storage capacity of your
@@ -120,7 +120,7 @@
       volume between different containers on the same instance, extending the
       temporary storage of a task.
     </p>
-    <h4>Bind Mounts</h4>
+    <strong>Bind Mounts</strong>
     <p>
       This setup works for both EC2 tasks (using local instance storage - tied
       to the life of the instance) and Fargate tasks (which get 20-200 GiB for
@@ -384,18 +384,18 @@
       src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-eks.png"
     />
     <h3>Node Types</h3>
-    <h4>Managed Node Groups</h4>
+    <strong>Managed Node Groups</strong>
     <p>
       Create and manage Nodes for you, nodes are part of an ASG managed by EKS.
       Supports On-Demand or Spot Instances.
     </p>
-    <h4>Self-Managed Nodes</h4>
+    <strong>Self-Managed Nodes</strong>
     <p>
       Nodes created by you and registered to the EKS cluster and managed by an
       ASG.
     </p>
     <p>Can still use the prebuilt AMI that is optimized for EKS.</p>
-    <h4>Fargate</h4>
+    <strong>Fargate</strong>
     <p>No maintenance required, no nodes managed.</p>
     <h3>Data Volumes</h3>
     <p>

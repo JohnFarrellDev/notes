@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>Elastic Beanstalk</h1>
+
+    <h2>Overview</h2>
+    <p>
+      Most web apps have the same architecture, typically using an ALB and ASG.
+      Developers want a single way or place to deploy applications. Beanstalk
+      handles EC2, ASG, ELB, and RDS as managed services. Developers are only
+      responsible for the application code, while still having control over the
+      configuration. Beanstalk itself is free, but you still pay for the
+      underlying infrastructure. Behind the scenes CloudFormation is creating
+      all the infrastructure required by EBS.
+    </p>
+
+    <h3>Beanstalk Components</h3>
+    <p>
+      <strong>Application:</strong> A collection of Elastic Beanstalk
+      components, including environments, versions, and configurations.
+    </p>
+    <p>
+      <strong>Application versions:</strong> An iteration of your application
+      code.
+    </p>
+    <p>
+      <strong>Environment:</strong> A collection of AWS resources running an
+      application version (only one version at a time).
+    </p>
+    <ul>
+      <li>Tiers: Web server environment tier, worker environment tier.</li>
+      <li>You can have multiple environments (e.g., dev, test, prod).</li>
+    </ul>
+    <p>
+      Elastic Beanstalk (EBS) supports Go, Java, .NET, Node.js, PHP, Python,
+      Ruby, and Docker. You can also write your own custom platform.
+    </p>
+    <h3>Web Server vs Worker Environment</h3>
+    <p>
+      If performing long-running tasks, offload them to a dedicated worker
+      environment which can process tasks from a queue. Decoupling your
+      application into tiers is common. Examples include processing a video or
+      generating a zip file. You can define periodic tasks in a file called
+      cron.yaml.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/web-tier-vs-worker-tier.png"
+    />
+
+    <h3>Deployment Modes</h3>
+    <strong>Single Instance:</strong>
+    <ul>
+      <li>Great for dev</li>
+      <li>DNS name points to an Elastic IP</li>
+      <li>Single instance in a single AZ</li>
+    </ul>
+    <strong>High Availability with Load Balancer:</strong>
+    <ul>
+      <li>Great for prod</li>
+      <li>DNS name points to an ELB DNS name</li>
+      <li>Multiple instances across multiple AZs</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-deployment-modes.png"
+    />
+
+    <h2>Deployment Options</h2>
+    <ul>
+      <li>
+        <strong>All at once:</strong> Deploy all in one go, fastest but
+        instances are not available to serve for a small amount of time.
+      </li>
+      <li>
+        <strong>Rolling:</strong> Update a few instances (bucket) at a time,
+        then move onto the next bucket when the previous bucket is healthy. No
+        downtime, no extra cost, potentially long deployment, and runs below
+        capacity.
+      </li>
+      <li>
+        <strong>Rolling with additional batches:</strong> Similar to rolling but
+        spins up new instances to move the batch. The old application is still
+        available, can run at full capacity, small cost, longer deployment, good
+        for production.
+      </li>
+      <li>
+        <strong>Immutable:</strong> Spins up new instances in a new ASG, deploys
+        the version to these instances, and then swaps all the instances when
+        everything is healthy. Swaps out the whole ASG, highest cost, longest
+        deployment, potential for quick rollback, and great for production.
+      </li>
+      <li>
+        <strong>Blue Green:</strong> Create a new environment and switch over
+        when ready.
+      </li>
+      <li>
+        <strong>Traffic Splitting:</strong> canary testing - send a small % of
+        traffic to the new deployment.
+      </li>
+    </ul>
+    <h3>All at Once</h3>
+    <ul>
+      <li>Fastest deployment</li>
+      <li>Application has downtime</li>
+      <li>Great for quick iterations in a dev environment</li>
+      <li>No additional cost</li>
+    </ul>
+    <h3>Rolling</h3>
+    <ul>
+      <li>
+        Application will run below capacity while some instances are switched
+      </li>
+      <li>
+        Can set the bucket size to determine how many instances are switched at
+        a time
+      </li>
+      <li>No additional cost</li>
+      <li>
+        Long deployment (imagine 100s of instances with a bucket size of 2)
+      </li>
+      <li>Both versions of application run simultaneously</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-rolling-deployment.png"
+    />
+    <h3>Rolling with Additional Batches</h3>
+    <ul>
+      <li>Application continues to run at capacity</li>
+      <li>Can set the bucket size</li>
+      <li>Both versions of the application run simultaneously</li>
+      <li>Small additional cost</li>
+      <li>Additional batch is removed at the end of deployment</li>
+      <li>Longer deployment</li>
+      <li>Good for production</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-rolling-additional-batches.png"
+    />
+    <h3>Immutable</h3>
+    <ul>
+      <li>Zero downtime</li>
+      <li>New code deployed to new instances on a temporary ASG</li>
+      <li>High cost as capacity is doubled</li>
+      <li>Longest deployment</li>
+      <li>
+        Bonus is a quick rollback in case of failure, just terminate the new ASG
+      </li>
+      <li>Good for prod</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-immutable.png"
+    />
+    <h3>Traffic Splitting</h3>
+    <ul>
+      <li>Canary testing</li>
+      <li>New application version is deployed to a temporary ASG</li>
+      <li>
+        A small percentage of traffic is sent to the new ASG for a configurable
+        amount of time
+      </li>
+      <li>Deployment health is monitored</li>
+      <li>
+        If there is a deployment failure, this triggers an automated rollback
+      </li>
+      <li>
+        If everything works fine, new instances are migrated from the temporary
+        ASG to the new ASG
+      </li>
+      <li>No downtime</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-traffic-splitting.png"
+    />
+    <h3>Blue/Green Deployment</h3>
+    <ul>
+      <li>Not a <strong>direct feature</strong>of EBS</li>
+      <li>Zero downtime and release facility</li>
+      <li>
+        Create a new EBS "stage" environment and deploy the new code version
+        there
+      </li>
+      <li>New environment can be validated independently</li>
+      <li>
+        Use Route 53 with a weighted policy to send some traffic to the new
+        version
+      </li>
+      <li>When fully satisfied, swap URLs in Beanstalk</li>
+      <li>Manual process that is not directly embedded into EBS</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/ebs-deployment-table.png"
+    />
+
+    <h2>Elastic Beanstalk CLI</h2>
+    <p>
+      Elastic Beanstalk provides an additional CLI called the EB CLI
+      specifically for working with Beanstalk from the command line. Helpful
+      commands (not required for the exam) include:
+    </p>
+    <ul>
+      <li>eb create</li>
+      <li>eb status</li>
+      <li>eb health</li>
+      <li>eb events</li>
+      <li>eb logs</li>
+      <li>eb open</li>
+      <li>eb deploy</li>
+      <li>eb config</li>
+      <li>eb terminate</li>
+    </ul>
+    <p>This CLI is helpful for automated deployment pipelines.</p>
+    <p>
+      To use Elastic Beanstalk, you need to describe dependencies such as in
+      <code>package.json</code> for Node.js and package your code as a zip file.
+      To create a new version, simply upload the zip file. Elastic Beanstalk
+      will deploy the zip on each EC2 instance, resolve dependencies, and start
+      the application.
+    </p>
+
+    <h2>Elastic Beanstalk Lifecycle Policy</h2>
+    <p>
+      You can store up to 1000 application versions in Elastic Beanstalk. After
+      reaching this limit, you must remove old versions. You can phase out old
+      versions with a lifecycle policy. The policy can be based on time
+      (removing versions after a certain time) or space (removing the oldest
+      version when hitting a maximum number of versions threshold set by the
+      user). Versions currently in use won't be deleted. There's also an option
+      to not delete the source bundle in S3 to prevent data loss.
+    </p>
+
+    <h2>Beanstalk Extensions</h2>
+    <p>
+      We upload a zip file with our code to EBS. All the parameters set in the
+      UI can be configured with code using files. Requirements include:
+    </p>
+    <ul>
+      <li>
+        Files must be in the <code>.ebextensions</code> directory in the root of
+        the source code
+      </li>
+      <li>Files should be in YAML/JSON format</li>
+      <li>
+        Files must have <code>.config</code> extensions (e.g.,
+        <code>logging.config</code>)
+      </li>
+      <li>
+        Ability to modify some default settings using
+        <code>option_settings</code>
+      </li>
+      <li>Ability to add resources such as RDS, ElastiCache, and DynamoDB</li>
+    </ul>
+    <p>
+      Resources managed by <code>.ebextensions</code> are deleted if the
+      environment goes away.
+    </p>
+
+    <h2>Elastic Beanstalk and CloudFormation</h2>
+    <p>
+      Under the hood, Beanstalk relies on CloudFormation. CloudFormation is used
+      to provision other AWS services. This means you can provision any other
+      AWS service from the <code>.ebextensions</code> directory by hooking into
+      CloudFormation, even if it's not shown in the AWS console UI.
+    </p>
+    <p>
+      You can define CloudFormation resources in your .ebextensions to provision
+      ElastiCache, an S3 bucket or anything else.
+    </p>
+
+    <h2>Beanstalk Cloning</h2>
+    <p>
+      You can clone an existing environment to a new environment with the same
+      configuration. This is useful for deploying a test version of your
+      application that has the same configuration as production. Note that data
+      would not be preserved, only the RDS configuration.
+    </p>
+
+    <h2>Beanstalk Migrations</h2>
+    <h3>Load Balancer</h3>
+    <p>After creating an ELB, you cannot change the ELB type. To migrate:</p>
+    <ul>
+      <li>
+        Create a new environment with the same configuration except for the load
+        balancer (can't clone because it will clone the load balancer).
+      </li>
+      <li>Deploy your application to the new environment.</li>
+      <li>Perform a CNAME swap or re-route Route 53 traffic.</li>
+    </ul>
+    <h3>RDS</h3>
+    <p>
+      RDS can be provisioned by EBS, which is great for dev/test environments.
+      However, it's not ideal for production as the database lifecycle is tied
+      to the EBS environment. The best practice for production is to separately
+      create an RDS database and provide your EB application with the connection
+      string.
+    </p>
+    <p><strong>To decouple RDS:</strong></p>
+    <ul>
+      <li>Create a snapshot of the RDS database as a safeguard.</li>
+      <li>Go to the RDS console and protect the database from deletion.</li>
+      <li>
+        Create a new EBS environment without RDS and point the application to
+        the existing RDS.
+      </li>
+      <li>Perform a CNAME swap or Route 53 update and confirm it's working.</li>
+      <li>Terminate the old environment (the RDS won't be deleted).</li>
+      <li>Delete the CloudFormation stack in DELETE_FAILED state.</li>
+    </ul>
+  </body>
+</html>

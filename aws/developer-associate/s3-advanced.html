@@ -61,7 +61,7 @@
 
     <h2>Performance</h2>
 
-    <h4>Baseline</h4>
+    <strong>Baseline</strong>
     <ul>
       <li>Scales to high request rates and low latency of 100-200ms</li>
       <li>
@@ -71,7 +71,7 @@
       <li>No limit to number of prefixes in a single bucket</li>
     </ul>
 
-    <h4>KMS Limitations</h4>
+    <strong>KMS Limitations</strong>
     <ul>
       <li>When you upload it calls GenerateDataKey to KMS API</li>
       <li>When you download it calls the Decrypt KMS API</li>
@@ -83,14 +83,14 @@
       <li>Could possibly throttle S3</li>
     </ul>
 
-    <h4>Multi-Part Upload</h4>
+    <strong>Multi-Part Upload</strong>
     <ul>
       <li>Recommended for files over 100Mb</li>
       <li>Can help parallelize uploads (speed up transfer)</li>
       <li>S3 puts parts back together into one file</li>
     </ul>
 
-    <h4>S3 Transfer Acceleration</h4>
+    <strong>S3 Transfer Acceleration</strong>
     <ul>
       <li>
         Increase transfer speed by transferring files to an AWS edge location
@@ -99,7 +99,7 @@
       <li>Compatible with multi-part upload</li>
     </ul>
 
-    <h4>S3 Byte-Range Fetches</h4>
+    <strong>S3 Byte-Range Fetches</strong>
     <ul>
       <li>Parallelize GETs by requesting specific byte ranges</li>
       <li>Better resilience in case of failures</li>

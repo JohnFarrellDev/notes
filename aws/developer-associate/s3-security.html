@@ -23,7 +23,7 @@
       <li>Client side encryption</li>
     </ul>
 
-    <h4>SSE-S3</h4>
+    <strong>SSE-S3</strong>
     <ul>
       <li>Keys used to encrypt data are handled by S3</li>
       <li>Object is encrypted server side</li>
@@ -31,7 +31,7 @@
       <li>Must set header: "x-amz-server-side-encryption": "AES256"</li>
     </ul>
 
-    <h4>SSE-KMS</h4>
+    <strong>SSE-KMS</strong>
     <ul>
       <li>SSE-KMS: encryption using keys handled and managed by KMS</li>
       <li>KMS advantages: user control + audit trail</li>
@@ -39,7 +39,7 @@
       <li>Must set header: "x-amz-server-side-encryption": "aws:kms"</li>
     </ul>
 
-    <h4>SSE-C</h4>
+    <strong>SSE-C</strong>
     <ul>
       <li>Server side encryption</li>
       <li>Amazon S3 does not store the key, you provide the key to AWS</li>
@@ -48,7 +48,7 @@
       <li>Key must be provided when retrieving the files from S3</li>
     </ul>
 
-    <h4>Client Side Encryption</h4>
+    <strong>Client Side Encryption</strong>
     <ul>
       <li>Encrypt object before sending the object to S3</li>
       <li>Can utilize Amazon S3 Encryption Client</li>
@@ -56,7 +56,7 @@
       <li>Customer fully manages the keys and encryption cycle</li>
     </ul>
 
-    <h4>DSSE-KMS</h4>
+    <strong>DSSE-KMS</strong>
 
     <p>
       By default all buckets use SSE-S3 but you can change this to a different

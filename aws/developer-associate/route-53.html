@@ -109,7 +109,7 @@
       clients but records will be outdated for longer.
     </p>
     <h3>CNAME vs Alias</h3>
-    <h4>CNAME</h4>
+    <strong>CNAME</strong>
     <ul>
       <li>
         Points a hostname to any other hostname (app.mydomain.com to
@@ -121,7 +121,7 @@
         are allowed a CNAME (such as foo.example.com)
       </li>
     </ul>
-    <h4>Alias</h4>
+    <strong>Alias</strong>
     <ul>
       <li>Alias are specific to route 53</li>
       <li>Allows us to point a hostname to an AWS resource</li>
@@ -171,7 +171,7 @@
         </ul>
       </li>
     </ul>
-    <h4>Simple</h4>
+    <strong>Simple</strong>
     <ul>
       <li>Typically route traffic to a single resource</li>
       <li>Can specify multiple values in the same record</li>
@@ -182,7 +182,7 @@
       <li>Can not enable health checks</li>
     </ul>
 
-    <h4>Weighted</h4>
+    <strong>Weighted</strong>
     <ul>
       <li>Control which % of traffic gets sent to each record</li>
       <li>
@@ -199,7 +199,7 @@
       </li>
     </ul>
 
-    <h4>Latency</h4>
+    <strong>Latency</strong>
     <ul>
       <li>Redirect to the resource that has the lowest latency for us</li>
       <li>Helpful when users require low latency</li>
@@ -210,7 +210,7 @@
       <li>Can be associated with Health Checks (has a failover capability)</li>
     </ul>
 
-    <h4>Health Checks</h4>
+    <strong>Health Checks</strong>
     <ul>
       <li>Mainly for checking public resources</li>
       <li>
@@ -279,7 +279,7 @@
       </li>
     </ul>
 
-    <h4>Failover</h4>
+    <strong>Failover</strong>
     <ul>
       <li>
         Require a primary instance that route 53 redirects to, instance which
@@ -291,7 +291,7 @@
       </li>
     </ul>
 
-    <h4>Geolocation</h4>
+    <strong>Geolocation</strong>
     <ul>
       <li>Not same as US based</li>
       <li>Routing is based on user location</li>
@@ -302,7 +302,7 @@
       </li>
     </ul>
 
-    <h4>Geoproximity</h4>
+    <strong>Geoproximity</strong>
     <ul>
       <li>
         Route traffic to your resources based on location of your users and the
@@ -327,7 +327,7 @@
       </li>
     </ul>
 
-    <h4>Traffic Flow</h4>
+    <strong>Traffic Flow</strong>
     <ul>
       <li>
         Simplify the process of creating and maintaining records in large
@@ -346,7 +346,7 @@
       </li>
     </ul>
 
-    <h4>IP Based</h4>
+    <strong>IP Based</strong>
     <ul>
       <li>Routing is based on clients' IP address</li>
       <li>
@@ -355,7 +355,7 @@
       <li>For example can route specific ISP to a specific endpoint</li>
     </ul>
 
-    <h4>Multi Value</h4>
+    <strong>Multi Value</strong>
     <ul>
       <li>Route traffic to multiple resources</li>
       <li>
@@ -367,7 +367,7 @@
       </li>
     </ul>
 
-    <h4>Third Party Domains and Route 53</h4>
+    <strong>Third Party Domains and Route 53</strong>
     <ul>
       <li>Can buy domain from any registrar you want</li>
       <li>
