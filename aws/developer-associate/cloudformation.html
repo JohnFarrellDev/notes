@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>CloudFormation</h1>
+
+    <h2>Overview</h2>
+    <p>
+      Infrastructure as Code (IaC) is implemented through CloudFormation on AWS.
+      Elastic Beanstalk uses CloudFormation under the hood. IaC aims to reduce
+      manual work, making it easier to reproduce infrastructure in another
+      region or account, and to recreate it if deleted. By deploying code that
+      updates our infrastructure and versioning it with Git, we gain numerous
+      advantages.
+    </p>
+    <p>
+      CloudFormation is a declarative way of outlining your AWS infrastructure
+      for most AWS resources using <code>YAML</code>. It creates infrastructure
+      in the order specified in the template. Changes to infrastructure can be
+      reviewed for cost implications. CloudFormation itself is free, with each
+      resource tagged with an identifier, allowing cost estimation from the
+      template. It also enables cost-saving measures, such as automatically
+      deleting development instances between 5 PM and 8 AM.
+    </p>
+    <p>
+      CloudFormation boosts productivity by making it easy to recreate
+      infrastructure on the cloud. It allows automated generation of diagrams
+      from templates and supports declarative programming. Separation of
+      concerns is possible with multiple tags, such as VPC stack, network stack,
+      and app stack. You can leverage existing templates, avoiding the need to
+      reinvent the wheel.
+    </p>
+    <p>
+      Templates are uploaded to S3 and then referenced in CloudFormation. To
+      edit a template, upload a new one; existing templates cannot be edited.
+      Stacks are identified by a name, and deleting a stack removes every single
+      artifact created by CloudFormation with one click, preventing accidental
+      retention of old instances.
+    </p>
+    <p>A CloudFormation template could say:</p>
+    <ul>
+      <li>I want a security group</li>
+      <li>I want two EC2 instances using that security group</li>
+      <li>I want two Elastic IPs for those EC2 instances</li>
+      <li>I want an S3 bucket</li>
+      <li>I want a load balancer in front of those EC2 instances</li>
+    </ul>
+    <p>
+      CloudFormation then creates everything for you in the right order with the
+      configuration specified.
+    </p>
+    <p>
+      We can visualize the components and how they interact with Application
+      Composer.
+    </p>
+    <p>
+      CloudFormation allows for separation of concerns as you can create many
+      stacks for many apps and many layers, such as VPC stacks or App stacks.
+    </p>
+    <p>
+      Because CloudFormation is IaC you can reuse the code to save time and
+      avoid re-inventing the wheel and can leverage existing templates on the
+      web.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-flow.png"
+    />
+
+    <h2>Deploying CloudFormation Templates</h2>
+    <h3>Manual</h3>
+    <ul>
+      <li>Editing templates in the Application Composer or code editor</li>
+      <li>Using the console to input parameters</li>
+    </ul>
+    <h3>Automated</h3>
+    <ul>
+      <li>Editing YAML files</li>
+      <li>
+        Using the AWS CLI to deploy templates or using a Continuous Delivery
+        tool
+      </li>
+      <li>Recommended way to automate the flow</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/deploying-cloudformation.png"
+    />
+
+    <h2>Building Blocks</h2>
+    <h3>Template Components</h3>
+    <ul>
+      <li>
+        <strong>AWSTemplateFormatVersion</strong> - identified the capabilities
+        of the template
+      </li>
+      <li><strong>Description</strong> - comments about the template</li>
+      <li>
+        <strong>Resources (Mandatory)</strong> - AWS resources declared in the
+        template
+      </li>
+      <li><strong>Parameters</strong> - Dynamic inputs for your template</li>
+      <li><strong>Mappings</strong> - Static variables for your template</li>
+      <li><strong>Outputs</strong> - References to what has been created</li>
+      <li>
+        <strong>Conditionals</strong> - list of conditions to perform resource
+        creation
+      </li>
+    </ul>
+    <h3>Template Helpers</h3>
+    <ul>
+      <li>References</li>
+      <li>Functions</li>
+    </ul>
+
+    <h2>Update and Delete Stack</h2>
+    <p>
+      To update our config file, we need to upload a new file each time
+      (creating a new version in S3). CloudFormation looks at the differences
+      between the config files and applies the required changes, which can
+      require an approval step in the UI. CloudFormation will delete
+      infrastructure in the correct order.
+    </p>
+
+    <h2>YAML</h2>
+    <ul>
+      <li>JSON is cumbersome for CloudFormation but can be used.</li>
+      <li>YAML is far superior.</li>
+      <li>YAML utilizes key:value pairs.</li>
+      <li>
+        Supports nested objects and arrays (array keys shown using hyphens).
+      </li>
+      <li>
+        Multi-line string support (shown by a "|" at the start of the string)
+      </li>
+      <li>Can include comments. (text preceded by a "#")</li>
+    </ul>
+
+    <h2>Resources</h2>
+    <p>
+      Resources are the core of a CloudFormation template and are mandatory.
+      They represent AWS components and are declared in the template, allowing
+      them to reference each other. AWS manages the creation, update, and
+      deletion of resources for us. There are over 700 AWS resources, with
+      documentation available for each.
+    </p>
+
+    <p>
+      Resource identifiers are in the form
+      <code>service-provider::service-name::data-type-name</code>. A resource
+      can have a list of properties that define its behavior, such as
+      <code>AvailabilityZone</code>. You cannot create a dynamic amount of
+      resources; everything in CloudFormation must be declared, with no code
+      generation. Almost all resources are supported, and those that are not can
+      be worked around using AWS Lambda Custom Resources.
+    </p>
+    <p>
+      For example an EC2 instance resource could look like:
+      <code>AWS::EC2::Instance</code>.
+    </p>
+    <a
+      href="https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-template-resource-type-ref.html"
+      class="external-link"
+      >AWS CloudFormation Resource Reference Guide</a
+    >
+    <p>
+      Making dynamic resources is possible using CloudFormation Macros and
+      Transform but is outside the scope of a developer associate.
+    </p>
+    <p>
+      If a resource is not supported you can use a CloudFormation Custom
+      Resource as a workaround.
+    </p>
+
+    <h2>CloudFormation Parameters</h2>
+    <p>
+      Parameters are a way to provide inputs to your CloudFormation template,
+      making it easier to reuse templates and handle inputs that cannot be
+      determined ahead of time. They are particularly useful if the
+      CloudFormation configuration is likely to change in the future.
+    </p>
+    <p>Parameters are controlled by various settings:</p>
+    <ul>
+      <li>
+        Types:
+        <ul>
+          <li>String</li>
+          <li>Number</li>
+          <li>CommaDelimitedList</li>
+          <li>List&lt;Type&gt;</li>
+          <li>AWS Parameter</li>
+        </ul>
+      </li>
+      <li>Description</li>
+      <li>Constraints</li>
+      <li>ConstraintDescription</li>
+      <li>Min/MaxLength</li>
+      <li>Min/MaxValue</li>
+      <li>Defaults</li>
+      <li>AllowedValues (array)</li>
+      <li>AllowedPattern (regex)</li>
+      <li>NoEcho (boolean)</li>
+    </ul>
+    <p>
+      Reference a parameter in YAML using
+      <code>!Ref &lt;ParameterName&gt;</code>. You can also reference other
+      resources in the same way.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-parameter.png"
+    />
+    <strong>Pseudo Parameters</strong>
+    <p>
+      AWS offers pseudo parameters in any CloudFormation template, which can be
+      used at any time and are enabled by default. Examples include
+      <code>AWS::AccountId</code> and <code>AWS::Region</code>.
+    </p>
+
+    <h2>Mappings</h2>
+    <p>
+      Mappings are fixed variables in your CloudFormation template. They are
+      useful for differentiating between different environments, such as dev vs.
+      prod, or different regions. All values in mappings are hardcoded within
+      the template.
+    </p>
+    <p>
+      We can use the <code>Fn::FindInMap</code> to return a named value from a
+      specified key.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-mapping.png"
+    />
+    <p>
+      Mappings are good when you know in advance all the values that can be
+      taken, such as region, AZ, or AWS account. They allow safer control over
+      the template, with only one value to update. Use parameters when values
+      are user-specific or when you don't know in advance what the value needs
+      to be.
+    </p>
+
+    <h2>Outputs and Exports</h2>
+    <p>
+      The Outputs section is optional but useful for various purposes. You can
+      import outputs into other CloudFormation templates if they are exported
+      first. Outputs can be viewed in the AWS console or AWS CLI.
+    </p>
+    <p>
+      For example, if you define a network in CloudFormation, you can output the
+      VPC ID and your Subnet IDs. This is the best way to perform cross-stack
+      collaboration. Note that you cannot delete a CloudFormation stack if the
+      output is referenced somewhere else.
+    </p>
+    <p>
+      To create a second template that utilizes the output from the first
+      template, use <code>!ImportValue &lt;ValueName&gt;</code> in your second
+      template.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-export.png"
+    />
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-import.png"
+    />
+
+    <h2>Conditions</h2>
+    <p>
+      Conditions are used to control the creation of resources based on factors
+      such as the environment (dev or test) or AWS region. Each condition can
+      reference another condition if required. The only logical conditions
+      available are <code>And</code>, <code>Equals</code>, <code>If</code>,
+      <code>Not</code>, and <code>Or</code>. You can apply a condition to a
+      resource to control its creation.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-condition.png"
+    />
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-condition-applied.png"
+    />
+
+    <h2>Intrinsic Functions</h2>
+    <p>Bold you must know</p>
+    <ul>
+      <li><strong>Fn::Ref</strong></li>
+      <li><strong>Fn::GetAtt</strong></li>
+      <li><strong>Fn::FindInMap</strong></li>
+      <li><strong>Fn::ImportValue</strong></li>
+      <li><strong>Condition Functions</strong></li>
+      <li><strong>Fn::Base64</strong></li>
+      <li>Fn::Join</li>
+      <li>Fn::Sub</li>
+      <li>Fn::ForEach</li>
+      <li>Fn::ToJsonString</li>
+      <li>Fn::Cidr</li>
+      <li>Fn::GetAZs</li>
+      <li>Fn::Select</li>
+      <li>Fn::Split</li>
+      <li>Fn::Transform</li>
+      <li>Fn::Length</li>
+    </ul>
+    <h3>Ref</h3>
+    <p>
+      The function can be leveraged to return the value of a parameter or the
+      underlying resource.
+    </p>
+    <h3>GetAtt</h3>
+    <p>
+      Attributes are attached to any resource you create, you can use GetAtt to
+      access them, for example finding what AZ an instance was launched in. Can
+      only get what attributes CloudFormation supports.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-get-attribute-example.png"
+    />
+    <h3>FindInMap</h3>
+    <p>
+      Returns a named value from a specific key within a map. Useful for
+      differentiating between different environments or regions.
+    </p>
+    <h3>ImportValue</h3>
+    <p>
+      Imports the value of an output exported by another stack. Useful for
+      cross-stack collaboration.
+    </p>
+    <h3>Condition Functions</h3>
+    <p>To conditionally create resources based on a condition.</p>
+    <h3>Base64</h3>
+    <p>
+      Encodes the specified string to Base64. Useful for encoding user data
+      passed to EC2 instances.
+    </p>
+
+    <h2>Rollbacks</h2>
+    <h3>Stack Creation Fail</h3>
+    <ul>
+      <li>
+        If stack creation fails, by default everything rolls back and is
+        deleted.
+      </li>
+      <li>Option to disable rollback and troubleshoot what happened.</li>
+    </ul>
+    <h3>Stack Update Fail</h3>
+    <ul>
+      <li>Rolls back to the previous known working state.</li>
+      <li>Ability to log what happened and see error messages.</li>
+    </ul>
+    <p>
+      If a rollback fails then there is probably a problem with resources than
+      need to be manually fixed, then issue ContinueUpdateRollback API from the
+      console.
+    </p>
+
+    <h2>Changeset</h2>
+    <ul>
+      <li>
+        When you update a stack, you can use a ChangeSet to see what changes
+        will be applied ahead of time for greater confidence.
+      </li>
+      <li>A ChangeSet won't indicate if the update will be successful.</li>
+    </ul>
+    <h3>Drift</h3>
+    <p>
+      CloudFormation doesn't protect against manual changes, so someone could
+      delete or edit a resource manually that is defined in our CloudFormation
+      configuration. If our infrastructure has changed from our CloudFormation
+      configuration, this is called drift. We can use CloudFormation Drift
+      Detection to see if drift has occurred. Drift shows the difference between
+      the expected and actual state of resources.
+    </p>
+
+    <h2>Nested Stacks</h2>
+    <ul>
+      <li>Are stacks that are part of other stacks.</li>
+      <li>
+        Allow you to isolate repeated patterns and common components in stacks
+        and call them from other stacks.
+      </li>
+      <li>Considered best practice.</li>
+      <li>Often used with a load balancer or security group.</li>
+      <li>To update a nested stack, update the parent (root stack).</li>
+    </ul>
+
+    <h2>Cross Stack vs Nested STack</h2>
+    <p><strong>Cross Stack:</strong></p>
+    <ul>
+      <li>Helpful when stacks have different lifecycles.</li>
+      <li>Use exports and imports to share values.</li>
+      <li>
+        When you need to pass exported values from one template to another.
+      </li>
+    </ul>
+    <p><strong>Nested Stacks:</strong></p>
+    <ul>
+      <li>Used when components must be reused, such as an ALB.</li>
+      <li>
+        The nested stack is only important to the higher-level stack and is not
+        shared.
+      </li>
+    </ul>
+
+    <h2>Service Role</h2>
+    <p>
+      IAM role that allows CloudFormation to create/update/delete stack
+      resourced on your behalf. Gives ability to users to create/update/delete
+      stack resources even if they don't have permissions to work with the
+      resources directly in the stack.
+    </p>
+    <p>User must have the <code>iam:PassRole</code> permission.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-service-role.png"
+    />
+
+    <h2>Capabilities</h2>
+    <p>
+      <code>CAPABILITY_NAMED_IAM</code> and <code>CAPABILITY_IAM</code> are
+      necessary when CloudFormation templates are creating or updating IAM
+      resources, <code>CAPABILITY_NAMED_IAM</code> is required if the resourced
+      are named.
+    </p>
+    <p>
+      <code>CAPABILITY_AUTO_EXPAND</code> is necessary when your CloudFormation
+      template includes Macros or Nested Stacks to perform dynamic
+      transformations. Your template may change before deployment.
+    </p>
+    <p>
+      <code>InsufficientCapabilitiesException</code> exception will be thrown by
+      CloudFormation if the capabilities have not been acknowledged when
+      deploying a template as a security measure.
+    </p>
+
+    <h2>DeletionPolicy</h2>
+    <p>
+      Controls what happens when the CLoudFormation template is deleted, by
+      default all the resources are deleted when the template is deleted. If you
+      want to you can explicitly set the DeletionPolicy. Delete will not apply
+      to an S3 bucket unless the bucket is empty.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-deletion-policy.png"
+    />
+    <p>
+      You can set <code>Retain</code> as the DeletionPolicy such as not deleting
+      a database as you want to keep the data.
+    </p>
+    <p>
+      There is also a <code>Snapshot</code> deletion policy which takes a final
+      snapshot of the resource before deleting it.
+    </p>
+
+    <h2>Stack Policies</h2>
+    <p>
+      By default during a CloudFormation Stack update, all updates are allowed
+      on all resources. A Stack Policy is a JSON document that defines the
+      update actions that are allowed on a specific resource during Stack
+      updates.
+    </p>
+    <p>This can protect resources from unintentional updates.</p>
+    <p>
+      When you create a Stack Policy all resources are now protected by default,
+      you then set an explicit <code>ALLOW</code> for the resources you want to
+      allow to be updated.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-stack-policy.png"
+    />
+
+    <h2>Termination Protection</h2>
+    <p>To prevent accidental deletes of our CloudFormation stacks.</p>
+
+    <h2>Custom Resources</h2>
+    <p>
+      Is used to define resources that are not yet supported by CloudFormation
+      or to define custom provision logic for your resources that can be outside
+      of CloudFormation.
+    </p>
+    <p>
+      Have custom scripts run during create/update/delete through Lambda
+      functions such as running a Lambda function to delete every object in an
+      S3 bucket.
+    </p>
+    <p>
+      Defined in the template using
+      <code>AWS::CloudFormation::CustomResource</code> or
+      <code>Custom::&lt;MyCustomResourceTypeName&gt;</code>
+    </p>
+    <p>
+      Defined a custom resource using a ServiceToken which specifies where
+      CLoudFormation sends requests to such as Lambda or SNS, this is required
+      and must be in the same region. Input parameters are also optional.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-custom-resource.png"
+    />
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-custom-resource-usecase.png"
+    />
+
+    <h2>StackSet</h2>
+    <ul>
+      <li>
+        Create, update, or delete stacks across multiple accounts and regions
+        with a single operation.
+      </li>
+      <li>Administrator account to create StackSets.</li>
+      <li>
+        Trusted accounts to create, update, and delete stack instances from
+        StackSets.
+      </li>
+      <li>
+        When you update a StackSet, all associated stack instances are updated
+        throughout all accounts and regions. Can be applied into all accounts of
+        an AWS Organization.
+      </li>
+      <li>
+        Only Administrator account or DelegatedAdministrator can create
+        StackSets.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudformation-stack-sets.png"
+    />
+  </body>
+</html>
