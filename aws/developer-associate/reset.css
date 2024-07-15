@@ -161,7 +161,8 @@ p b {
 code {
   background-color: HSL(35, 70%, 70%);
   font-weight: 600;
-  white-space: nowrap;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .external-link {

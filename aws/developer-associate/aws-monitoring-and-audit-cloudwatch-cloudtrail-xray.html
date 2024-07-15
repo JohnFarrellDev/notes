@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>AWS Monitoring and Audit (CloudWatch, CloudTrail and X-Ray)</h1>
+
+    <h2>Overview</h2>
+    <p>
+      We need to ensure our application is working for our users, be aware of
+      any outages, and monitor latency. Additionally, we aim to:
+    </p>
+    <ul>
+      <li>Prevent issues before they happen.</li>
+      <li>Monitor performance and cost.</li>
+      <li>See trends.</li>
+      <li>Learn about our application and make improvements.</li>
+    </ul>
+    <p><strong>CloudWatch:</strong></p>
+    <ul>
+      <li>Metrics</li>
+      <li>Logs</li>
+      <li>Events</li>
+      <li>Alarms</li>
+    </ul>
+    <p><strong>X-Ray:</strong></p>
+    <ul>
+      <li>Troubleshoot performance and errors.</li>
+      <li>Distributed tracing of microservices.</li>
+    </ul>
+    <p><strong>CloudTrail:</strong></p>
+    <ul>
+      <li>Internal monitoring of API calls made.</li>
+      <li>Audit changes to AWS resources by your users.</li>
+    </ul>
+
+    <h2>CloudWatch Metrics</h2>
+    <ul>
+      <li>Metrics are available for every service in AWS.</li>
+      <li>A metric is a variable to monitor, such as CPU Utilization.</li>
+      <li>Metrics belong to a namespace.</li>
+      <li>
+        A dimension is an attribute of a metric (instance ID, environment,
+        etc.).
+      </li>
+      <li>Up to 10 dimensions per metric.</li>
+      <li>Metrics have timestamps.</li>
+      <li>You can create CloudWatch dashboards of metrics.</li>
+    </ul>
+    <h3>EC2</h3>
+    <ul>
+      <li>Metrics are collected every 5 minutes.</li>
+      <li>
+        With detailed monitoring (at a cost), metrics are collected every 1
+        minute.
+      </li>
+      <li>
+        For services like ASG, which rely on these metrics, detailed monitoring
+        allows for faster responses.
+      </li>
+      <li>AWS free tier allows up to 10 detailed monitoring metrics.</li>
+      <li>
+        EC2 memory usage is not pushed by default; it must be pushed from the
+        instance as a custom metric.
+      </li>
+    </ul>
+
+    <h2>CloudWatch Custom Metrics</h2>
+    <ul>
+      <li>
+        Possible to define and send your own custom metrics, such as RAM usage.
+      </li>
+      <li>Use the API call <code>PutMetricData</code>.</li>
+      <li>
+        Ability to use user-defined dimensions to segment metrics:
+        <ul>
+          <li>Instance.id</li>
+          <li>Environment.name</li>
+        </ul>
+      </li>
+      <li>
+        Metric resolution (StorageResolution API parameter) has two possible
+        values:
+        <ul>
+          <li>Standard is 1 minute.</li>
+          <li>High resolution is 1/5/10/30 seconds at a higher cost.</li>
+        </ul>
+      </li>
+      <li>
+        Accepts metric data points two weeks in the past and two hours in the
+        future. The EC2 instance time must be correct if you want metrics synced
+        correctly.
+      </li>
+    </ul>
+
+    <h2>CloudWatch Logs</h2>
+    <p>Perfect place to store your application logs within AWS.</p>
+    <ul>
+      <li>
+        <strong>Log Groups:</strong> Arbitrary names, usually representing an
+        application.
+      </li>
+      <li>
+        <strong>Log Streams:</strong> Instances within an application, log
+        files, containers.
+      </li>
+      <li>
+        Can define log expiration policies (by default never expire, 30 days,
+        etc.).
+      </li>
+    </ul>
+    <p>CloudWatch can send logs to:</p>
+    <ul>
+      <li>Amazon S3</li>
+      <li>Kinesis Data Streams</li>
+      <li>Kinesis Data Firehose</li>
+      <li>AWS Lambda</li>
+      <li>OpenSearch</li>
+    </ul>
+    <p>
+      Logs are encrypted by default but can setup KMS encryption if desired.
+    </p>
+    <p>
+      Logs can be sent with the SDK, CloudWatch Logs Agent (deprecated in favour
+      of unified agent), or CloudWatch Unified Agent. Various services integrate
+      with CloudWatch Logs:
+    </p>
+    <ul>
+      <li>Elastic Beanstalk - collection of logs from applications.</li>
+      <li>ECS - logs from containers.</li>
+      <li>AWS Lambda - collection from function logs.</li>
+      <li>VPC Flow Logs - VPC specific logs.</li>
+      <li>API Gateway - logs sent through the gateway.</li>
+      <li>CloudTrail - based on filters.</li>
+      <li>Route 53 - log DNS queries.</li>
+    </ul>
+    <h3>CloudWatch Filters and Insights</h3>
+    <ul>
+      <li>Find a specific IP inside of a log.</li>
+      <li>Count occurrences of "Error" in your logs.</li>
+      <li>Metric filters can be used to trigger CloudWatch alarms.</li>
+      <li>
+        CloudWatch Log Insights can be used to query logs and add queries to
+        CloudWatch Dashboards.
+      </li>
+      <li>Provides a purpose-built query language</li>
+      <li>Can query multiple Log Groups in different AWS accounts</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudwatch-logs-insights.png"
+    />
+    <h3>S3 Export</h3>
+    <ul>
+      <li>Send data from CloudWatch to S3.</li>
+      <li>Can take up to 12 hours to become available for export.</li>
+      <li>The API is called <code>CreateExportTask</code>.</li>
+      <li>
+        Not close to real time; use Logs Subscription instead for real-time
+        needs.
+      </li>
+    </ul>
+    <h3>CloudWatch Logs Subscriptions</h3>
+    <ul>
+      <li>
+        Get a real-time log event from CloudWatch logs for processing and
+        analysis
+      </li>
+      <li>Send to Kinesis Data Streams, Kinesis Data Firehose or Lambda</li>
+      <li>
+        Subscription Filter - filter which logs are events delivered to your
+        destination
+      </li>
+    </ul>
+    <h2>Multi Account and Multi Region Logging</h2>
+    <p>
+      CloudWatch Logs can collect logs from multiple accounts and regions. These
+      can be merged into a single Kinesis Data Stream which in turn passes the
+      logs to Kinesis Data Firehose and into S3 in near real time.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cross-account-cloudwatch-subscriptions.png"
+    />
+
+    <h2>CloudWatch Agent</h2>
+    <ul>
+      <li>By default, no logs from your EC2 instance will go to CloudWatch.</li>
+      <li>
+        You need to run a CloudWatch agent on EC2 to push the log files you
+        want.
+      </li>
+      <li>
+        Ensure IAM permissions are configured correctly to send logs to
+        CloudWatch.
+      </li>
+      <li>The CloudWatch log agent can also be set up on-premise.</li>
+    </ul>
+    <p>There are two types of agents:</p>
+    <ul>
+      <li>
+        <strong>CloudWatch Logs Agent:</strong> An older version that can only
+        send CloudWatch logs.
+      </li>
+      <li>
+        <strong>Unified Agent:</strong> Can collect additional system-level
+        metrics such as RAM, processes, and logs to send to CloudWatch Logs.
+      </li>
+    </ul>
+    <p>
+      The Unified Agent can be configured using the SSM Parameter Store and
+      collects metrics directly from Linux servers/instances, including:
+    </p>
+    <ul>
+      <li>CPU - active, guest, idle, user</li>
+      <li>Disk metrics</li>
+      <li>Disk IO</li>
+      <li>RAM</li>
+      <li>Netstat</li>
+      <li>Processes</li>
+      <li>Swap space</li>
+    </ul>
+    <p>The Unified Agent provides more detailed metrics.</p>
+
+    <h2>CloudWatch Logs Metric Filters</h2>
+    <ul>
+      <li>Logs can filter for a specific expression.</li>
+      <li>
+        A filter can then trigger an alarm based on the count of logs with
+        "Error," for example.
+      </li>
+      <li>The alarm can then trigger an SNS notification.</li>
+      <li>
+        Filters do not retroactively filter data, only filter data since the
+        filter was created.
+      </li>
+      <li>
+        Filter has the ability to specify up to 3 Dimensions for the Metric
+        Filter.
+      </li>
+      <img
+        src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudwatch-metrics-filter.png"
+      />
+    </ul>
+
+    <h2>CloudWatch Alarms</h2>
+    <ul>
+      <li>Used to trigger notifications for any metric.</li>
+      <li>Options can be %, max, min, etc.</li>
+      <li>
+        Alarm states: <code>OK</code>, <code>INSUFFICIENT_DATA</code>,
+        <code>ALARM</code>.
+      </li>
+    </ul>
+    <p><strong>Period:</strong></p>
+    <ul>
+      <li>Length of time in seconds to evaluate the metric.</li>
+      <li>
+        High resolution custom metrics: 10 sec, 30 sec, or multiples of 60 sec.
+      </li>
+    </ul>
+    <p><strong>Targets:</strong></p>
+    <ul>
+      <li>Actions against an instance (stop, terminate, reboot, recover).</li>
+      <li>Trigger auto scale action (scale in or scale out).</li>
+      <li>
+        Send notification to SNS, which can then perform various actions such as
+        trigger a lambda function.
+      </li>
+    </ul>
+    <p>You can test (trigger) an alarm using the CLI:</p>
+    <code
+      >aws cloudwatch set-alarm-state --alarm-name "myalarm" --state-value ALARM
+      --state-reason "testing"</code
+    >
+    <h3>Composite Alarms</h3>
+    <p>
+      Each CloudWatch Alarms run on a single metric, can create Composite Alarms
+      that monitor the state of multiple other alarms using <code>AND</code> and
+      <code>OR</code> conditions. This can help to reduce "alarm noise" by
+      creating complex alarms.
+    </p>
+
+    <h2>CloudWatch Synthetics</h2>
+    <p>
+      A configurable script that monitors your APIs, URLS, Websites etc. The
+      script can reproduce what your customs do programmatically to find issues
+      before customers are impacted.
+    </p>
+    <p>
+      Can check the availability and latency of your endpoint, can store load
+      time data and screenshots of the UI, integrates with CloudWatch Alarms.
+    </p>
+    <p>
+      Script can be written in Node.js or Python and gives you access to a
+      headless Chrome browser, the script can run on a schedule or once.
+    </p>
+    <p>There are some blueprints you can leverage:</p>
+    <ul>
+      <li>
+        <strong>Heartbeat Monitor</strong> - load URL, store screenshot and an
+        HTTP archive
+      </li>
+      <li>
+        <strong>API Canary</strong> - test basic read and write functions of a
+        REST API
+      </li>
+      <li>
+        <strong>Broken Link Checker</strong> - Check all links inside the URL
+        you are testing
+      </li>
+      <li>
+        <strong>Visual Monitoring</strong> - Compare a screenshot taken during a
+        canary run with a baseline screenshot
+      </li>
+      <li>
+        <strong>Canary Recorder</strong> - used with CloudWatch SYnthetics
+        Record to record your actions on a website and automatically generate a
+        script to reproduce them
+      </li>
+      <li>
+        <strong>GUI Workflow Builder</strong> - verifies that actions can be
+        taken on your webpage such as logging in
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudwatch-synthetics.png"
+    />
+
+    <h2>EventBridge (formerly CloudWatch Events)</h2>
+    <ul>
+      <li>
+        Can schedule cron jobs that do something like trigger a lambda function
+      </li>
+      <li>
+        Can react to an event such as IAM root user signs in, SNS topic with
+        email notification triggered
+      </li>
+      <li>
+        Integrates with EC2 events, CodeBuild, S3 events, Trusted Advisor,
+        CloudTrail or cron job
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/eventbridge.png"
+    />
+    <p>
+      EventBridge is the default Event Bus but the Partner Event Bus also exists
+      for integrating with third party applications such as DataDog. DataDog
+      could send events to the Partner Event Bus which then triggers changes
+      within AWS. There is also the Custom Event Bus which your custom
+      applications can send events too.
+    </p>
+    <p>Events can be archived and there is the ability to replay events.</p>
+    <p>
+      Event busses can be accessed by other AWS accounts using Resource-based
+      policies.
+    </p>
+    <p>
+      EventBridge can analyse the events in your bus and infer the schema, the
+      schema registry allows you to generate code for your application that will
+      know in advance how the data is structured.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/eventbridge-resource-based-policy.png"
+    />
+
+    <h2>X-Ray</h2>
+    <p>
+      Makes it a lot easier to debug in production without requiring log
+      statements everywhere, especially if you use a distributed microservice
+      architecture.
+    </p>
+    <ul>
+      <li>Visual analysis of your applications.</li>
+      <li>Percentage of requests failing.</li>
+      <li>
+        Visualize what your application is doing and which services it is
+        calling, making debugging easier (e.g., if a relied-on service is
+        failing).
+      </li>
+      <li>Troubleshoot performance issues (bottlenecks).</li>
+      <li>Understand microservice dependencies.</li>
+      <li>Pinpoint service issues.</li>
+      <li>Review request behavior.</li>
+      <li>Find errors and exceptions.</li>
+      <li>Assess whether SLAs are being met.</li>
+      <li>Identify throttling points.</li>
+      <li>Identify impacted users.</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-xray.png"
+    />
+    <h3>Compatibility</h3>
+    <ul>
+      <li>AWS Lambda</li>
+      <li>Elastic Beanstalk (EBS)</li>
+      <li>Elastic Container Service (ECS)</li>
+      <li>Elastic Load Balancer (ELB)</li>
+      <li>API Gateway</li>
+      <li>EC2 instances or any application server, including on-premises</li>
+    </ul>
+    <h3>X-Ray Tracing</h3>
+
+    <ul>
+      <li>Tracing is an end-to-end way to follow a request.</li>
+      <li>
+        Each component dealing with the request is added to its own trace.
+      </li>
+      <li>Tracing is made of segments and sub-segments.</li>
+      <li>Annotations can be added to traces to provide extra information.</li>
+      <li>
+        Ability to trace:
+        <ul>
+          <li>Every request</li>
+          <li>Sampled requests (as a percentage or a rate per minute)</li>
+        </ul>
+      </li>
+    </ul>
+    <h3>X-Ray Security</h3>
+    <ul>
+      <li>IAM for authorization</li>
+      <li>KMS for encryption at rest</li>
+    </ul>
+    <h3>How to Enable X-Ray</h3>
+    <ul>
+      <li>
+        Your code (Java, Python, Go, NodeJS, .NET) must import the AWS X-Ray
+        SDK.
+      </li>
+      <li>Very little code modification is required.</li>
+      <li>
+        The application SDK will capture calls to AWS services, HTTP requests,
+        database calls, and queue calls.
+      </li>
+    </ul>
+    <ul>
+      <li>Install the X-Ray daemon or enable AWS integration.</li>
+      <li>
+        The X-Ray daemon works as a low-level UDP packet interceptor (it uploads
+        information in batches to reduce throttling).
+      </li>
+      <li>AWS Lambda or other AWS services already run the daemon for us.</li>
+      <li>Each application must have IAM permission to write data to X-Ray.</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/enable-xray.png"
+    />
+    <p>
+      If X-Ray is not working on EC2 ensure the EC2 IAM role has the proper
+      permissions and the EC2 instance is running the X-Ray Daemon.
+    </p>
+    <p>
+      To enable X-Ray on Lambda ensure it has an IAM execution role with policy
+      <code>AWSX-RAYWRITEONLYACCESS</code>, that X-Ray is imported in the code
+      and Lambda X-Ray Active tracing is enabled.
+    </p>
+
+    <h2>Instrumentation and Concepts</h2>
+    <p>
+      Instrumentation involves measuring a product's performance, diagnosing
+      errors, and writing trace information. To instrument your application
+      code, use the X-Ray SDK. Configuring X-Ray usually requires minor
+      configuration changes, and you can customize code by annotating data sent
+      from the SDK to X-Ray.
+    </p>
+    <ul>
+      <li>
+        <strong>Segments:</strong> Each application/service sends segments (how
+        we see stuff in the UI).
+      </li>
+      <li>
+        <strong>Subsegments:</strong> Used if you need more details within your
+        segments.
+      </li>
+      <li>
+        <strong>Trace:</strong> Segments collected together to form an
+        end-to-end trace.
+      </li>
+      <li>
+        <strong>Sampling:</strong> Decreases the number of requests sent to
+        X-Ray to reduce costs.
+      </li>
+      <li>
+        <strong>Annotations:</strong> Key:value pairs used to index traces and
+        apply filters.
+      </li>
+      <li>
+        <strong>Metadata:</strong> Key:value pairs not indexed, so they are not
+        used for searching.
+      </li>
+    </ul>
+    <p>
+      The X-Ray daemon/agent can be configured to send traces across accounts:
+    </p>
+    <ul>
+      <li>Ensure IAM permissions are correct; agents will assume a role.</li>
+      <li>Allows a central account for all tracing/logging.</li>
+    </ul>
+
+    <h2>X-Ray: Sampling Rules</h2>
+    <ul>
+      <li>With sampling rules, you control the amount of data you record.</li>
+      <li>You can modify sampling rules without changing your code.</li>
+      <li>
+        By default, the X-Ray SDK records the first request each second and five
+        percent of any additional requests.
+      </li>
+      <li>One request per second is the reservoir.</li>
+      <li>Five percent is the rate.</li>
+      <li>You can create your own rules by changing the reservoir and rate.</li>
+    </ul>
+    <p>Additional matching criteria include:</p>
+    <ul>
+      <li>Service name</li>
+      <li>Service type</li>
+      <li>HTTP method</li>
+      <li>URL path</li>
+      <li>Resource ARN</li>
+      <li>Host</li>
+    </ul>
+
+    <h2>X-Ray APIs</h2>
+    <h3>Write Calls</h3>
+    <ul>
+      <li>
+        <strong>PutTraceSegments:</strong> Uploads segment documents to X-Ray.
+      </li>
+      <li>
+        <strong>PutTelemetryRecords:</strong> Used by AWS to upload telemetry
+        (SegmentsReceivedCount, SegmentsRejectedCount, BackendConnectionErrors).
+      </li>
+      <li>
+        <strong>GetSamplingRules:</strong> Retrieves all sampling rules to know
+        what/when to send.
+      </li>
+      <li>
+        <strong>GetSamplingTarget:</strong> Advanced call related to
+        GetSamplingRules.
+      </li>
+      <li>
+        <strong>GetSamplingStatisticsSummaries:</strong> Advanced call related
+        to GetSamplingRules.
+      </li>
+      <li>X-Ray daemon must have IAM policies to make API calls.</li>
+    </ul>
+    <h3>Read Calls</h3>
+    <ul>
+      <li>
+        <strong>GetServiceGraph:</strong> Retrieves the main service graph.
+      </li>
+      <li>
+        <strong>BatchGetTraces:</strong> Retrieves a list of traces specified by
+        ID; each trace is a collection of segment documents that originate from
+        a single request.
+      </li>
+      <li>
+        <strong>GetTraceSummaries:</strong> Retrieves IDs and annotations for
+        traces available for a specified time frame using an optional filter. To
+        get the full traces, pass the trace IDs to BatchGetTraces.
+      </li>
+      <li>
+        <strong>GetTraceGraph:</strong> Retrieves a service graph for one or
+        more specific trace IDs.
+      </li>
+    </ul>
+
+    <h2>X-Ray with Beanstalk</h2>
+    <ul>
+      <li>
+        Elastic Beanstalk (EBS) includes the X-Ray daemon and can be configured
+        in <code>.ebextensions/xray-daemon.config</code> or from the AWS
+        console.
+      </li>
+      <li>Ensure the instance profile has the correct IAM permissions.</li>
+      <li>Ensure your application code is instrumented with the X-Ray SDK.</li>
+      <li>The X-Ray daemon is not set up for multiple containers.</li>
+    </ul>
+
+    <h2>X-Ray and ECS</h2>
+    <h3>ECS Cluster with a Daemon</h3>
+    <ul>
+      <li>
+        Use the X-Ray container as a daemon, running one on every EC2 instance.
+      </li>
+      <li>
+        Configure the application in the instance to communicate via UDP through
+        the X-Ray daemon.
+      </li>
+      <li>
+        Multiple app instances within an EC2 instance can use a single X-Ray
+        daemon.
+      </li>
+    </ul>
+    <h3>ECS Cluster with a Sidecar</h3>
+    <ul>
+      <li>
+        One X-Ray daemon runs alongside every single application container.
+      </li>
+      <li>
+        If there are multiple application containers in an EC2 instance, you
+        will have multiple X-Ray daemons.
+      </li>
+    </ul>
+    <h3>Fargate Cluster</h3>
+    <ul>
+      <li>The X-Ray container still works as a sidecar.</li>
+      <li>
+        Both the app container and the X-Ray sidecar are inside the same Fargate
+        task.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/xray-and-ecs.png"
+    />
+
+    <h2>AWS Distro for OpenTelemetry</h2>
+    <p>
+      Secure, production-ready AWS-supported distribution of the open-source
+      project OpenTelemetry. Provides a single set of APIs, libraries, agents
+      and collector services to collect distributed traces and metrics from your
+      apps + metadata from your AWS resources and services.
+    </p>
+    <p>
+      Auto-instrumentation Agents to collect traces without requiring code
+      changes, send traces and metrics to multiple AWS service and partner
+      solutions.
+    </p>
+    <p>
+      Will instrument your apps running on AWS as well as on-premises to send
+      traces and metrics to X-Ray, CloudWatch, Prometheus os third parties such
+      as DataDog.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/open-telemetry.png"
+    />
+
+    <h2>CloudTrail</h2>
+    <ul>
+      <li>Provides governance, compliance, and audit for your AWS account.</li>
+      <li>CloudTrail is enabled by default.</li>
+      <li>
+        Get a history of events/API calls made within your AWS account by:
+        <ul>
+          <li>Console</li>
+          <li>SDK</li>
+          <li>CLI</li>
+          <li>AWS Services</li>
+        </ul>
+      </li>
+      <li>Can put logs from CloudTrail into CloudWatch or S3.</li>
+      <li>
+        A trail can be applied to all regions (default) or a single region.
+      </li>
+      <li>
+        If a resource is deleted in AWS, CloudTrail will know who deleted it and
+        when.
+      </li>
+      <li>
+        By default, CloudTrail events last 90 days unless put into CloudWatch or
+        S3.
+      </li>
+    </ul>
+    <h3>CloudTrail Events</h3>
+    <p><strong>Management events:</strong></p>
+    <ul>
+      <li>Operations that are performed on resources in your AWS account.</li>
+      <li>
+        Examples:
+        <ul>
+          <li>Configuring security (IAM <code>AttachRolePolicy</code>)</li>
+          <li>
+            Configuring rules for routing data (Amazon EC2
+            <code>CreateSubnet</code>)
+          </li>
+          <li>Setting up logging (AWS CloudTrail <code>CreateTrail</code>)</li>
+        </ul>
+      </li>
+      <li>By default, trails are configured to log management events.</li>
+      <li>
+        Can separate <strong>READ</strong> events from
+        <strong>WRITE</strong> events.
+      </li>
+    </ul>
+    <p><strong>Data events:</strong></p>
+    <ul>
+      <li>By default, data events are not logged because of high volume.</li>
+      <li>
+        Amazon S3 object-level activity (GetObject, DeleteObject, PutObject).
+      </li>
+      <li>Can separate Read and Write events.</li>
+      <li>
+        AWS Lambda function execution activity. (the <code>Invoke</code> API)
+      </li>
+    </ul>
+    <p><strong>CloudTrail insight events:</strong></p>
+    <ul>
+      <li>Have to enable and pay for.</li>
+      <li>
+        Tries to detect unusual activity:
+        <ul>
+          <li>Inaccurate resource provisioning.</li>
+          <li>Hitting service limits.</li>
+          <li>Burst of IAM actions.</li>
+          <li>Gaps in periodic maintenance activity.</li>
+        </ul>
+      </li>
+      <li>Runs insights to create a baseline for normal activity.</li>
+      <li>Continuously analyzes writes to detect unusual patterns.</li>
+      <li>Anomalies appear in the CloudTrail console and can be sent to S3.</li>
+      <li>
+        EventBridge is created for automation needs such as sending an email.
+      </li>
+    </ul>
+    <h3>Retention</h3>
+    <ul>
+      <li>Stored by default for 90 days.</li>
+      <li>To preserve, log events to S3.</li>
+      <li>Use Athena to analyze the S3 data.</li>
+    </ul>
+
+    <h2>EventBridge Integration</h2>
+    <ul>
+      <li>EventBridge builds upon and extends CloudWatch Events.</li>
+      <li>
+        Utilizes the same service API and endpoint and the same underlying
+        service infrastructure.
+      </li>
+      <li>
+        EventBridge allows extensions to add event buses for your custom
+        applications and third-party SaaS apps.
+      </li>
+      <li>EventBridge has the Schema Registry capability.</li>
+      <li>
+        EventBridge has a new name due to the new capabilities; eventually,
+        CloudWatch Events will be phased out and replaced by EventBridge.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cloudtrail-eventbridge.png"
+    />
+
+    <h2>CloudTrail vs CloudWatch vs X-Ray</h2>
+    <h3>CloudTrail</h3>
+    <ul>
+      <li>Audit API calls made by users, services, and the AWS console.</li>
+      <li>
+        Useful for detecting unauthorized calls or identifying the root cause of
+        changes.
+      </li>
+    </ul>
+    <h3>CloudWatch</h3>
+    <ul>
+      <li>Metrics over time for monitoring.</li>
+      <li>Logs for storing application logs.</li>
+      <li>Alarms to send notifications in case of unexpected metrics.</li>
+    </ul>
+    <h3>X-Ray</h3>
+    <ul>
+      <li>Automated trace analysis and central service map visualization.</li>
+      <li>Check for latency, errors, and fault analysis.</li>
+      <li>Request tracking across a distributed system.</li>
+    </ul>
+  </body>
+</html>
