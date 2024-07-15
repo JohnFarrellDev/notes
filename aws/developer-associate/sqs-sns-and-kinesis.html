@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>SQS, SNS and Kinesis</h1>
+
+    <h2>Introduction to Messaging</h2>
+    <p>
+      Messaging allows multiple applications to communicate with each other and
+      share information. There are two types of communication:
+    </p>
+    <ul>
+      <li>
+        <strong>Synchronous communication:</strong> Application to application.
+      </li>
+      <li>
+        <strong>Asynchronous/event-based communication:</strong> Application to
+        queue to application, with no direct communication.
+      </li>
+    </ul>
+    <p>
+      Synchronous applications can be problematic if there are sudden spikes in
+      traffic. In such cases, it is better to decouple your applications.
+    </p>
+    <p>There are different messaging models:</p>
+    <ul>
+      <li><strong>SQS:</strong> Queue model.</li>
+      <li><strong>SNS:</strong> Pub/sub model.</li>
+      <li><strong>Kinesis:</strong> Real-time streaming model.</li>
+    </ul>
+    <p>These services can scale independently from our applications.</p>
+
+    <h2>Simple Queue Service (SQS) Overview</h2>
+    <ul>
+      <li>
+        Producer sends messages into the queue (can have multiple producers
+        sending messages to a single queue).
+      </li>
+      <li>
+        Consumer polls the queue for messages. If it gets a message, it
+        processes it and then deletes it from the queue. Multiple consumers can
+        poll a single queue.
+      </li>
+      <li>The queue acts as a buffer between the Producer and Consumer.</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sqs-queue.png"
+    />
+    <h3>Standard Queue</h3>
+    <p>
+      One of the first services offered by AWS (over 10 years old), SQS is a
+      fully managed service used to decouple applications.
+    </p>
+
+    <p><strong>Attributes:</strong></p>
+    <ul>
+      <li>Unlimited throughput, unlimited number of messages in a queue.</li>
+      <li>
+        By default, message retention is 4 days; maximum retention if configured
+        is 14 days.
+      </li>
+      <li>Low latency (<10 ms)</li>
+      <li>Limitation of 256KB per message sent.</li>
+      <li>
+        Can have duplicate messages (at least once delivery, occasionally).
+      </li>
+      <li>Can have out-of-order messages (best effort ordering).</li>
+    </ul>
+    <p><strong>Producing Messages:</strong></p>
+    <ul>
+      <li>Produced to SQS using the SDK SendMessage API.</li>
+      <li>
+        Message is persisted in SQS until a consumer deletes it, such as an
+        order to be processed.
+      </li>
+    </ul>
+    <p><strong>Consuming Messages:</strong></p>
+    <ul>
+      <li>Applications written in code.</li>
+      <li>Can run on EC2, Lambda functions, or on-premises servers.</li>
+      <li>Polls SQS for messages.</li>
+      <li>Can receive up to 10 messages at a time.</li>
+      <li>
+        Consumer processes the message, such as writing data to a database.
+      </li>
+      <li>
+        Consumer deletes messages from the queue using the DeleteMessage API.
+      </li>
+    </ul>
+    <p><strong>Multiple Consumers:</strong></p>
+    <ul>
+      <li>Consumers receive and process messages in parallel.</li>
+      <li>Each consumer gets a different set of messages.</li>
+      <li>At least once delivery.</li>
+      <li>Best-effort message ordering.</li>
+      <li>Consumers delete messages after processing them.</li>
+      <li>You can add more consumers to horizontally scale.</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sqs-consumers.png"
+    />
+    <h3>SQS with ASG</h3>
+    <ul>
+      <li>
+        Consumer EC2s run on instances inside an Auto Scaling Group (ASG).
+      </li>
+      <li>EC2 instances poll for messages from SQS.</li>
+      <li>
+        SQS provides a CloudWatch metric for queue length (approximate number of
+        messages).
+      </li>
+      <li>
+        Set a CloudWatch alarm to scale up instances based on the queue length.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sqs-with-asg.png"
+    />
+    <h3>Security</h3>
+    <p><strong>Encryption:</strong></p>
+    <ul>
+      <li>In-flight encryption using HTTPS API.</li>
+      <li>At-rest encryption using KMS API.</li>
+      <li>
+        Client-side encryption if the client wants to perform the
+        encryption/decryption.
+      </li>
+    </ul>
+    <p><strong>Access Controls:</strong></p>
+    <ul>
+      <li>IAM policies to regulate access to SQS API.</li>
+    </ul>
+    <p><strong>SQS Access Policies:</strong></p>
+    <ul>
+      <li>Useful for cross-account access to SQS queues.</li>
+      <li>
+        Useful for allowing other services (SNS, S3) to write to an SQS queue.
+      </li>
+    </ul>
+
+    <h2>Queue Access Policy</h2>
+    <p>
+      <strong>Cross Account Access</strong>, create a queue access policy
+      similar to an S3 access policy which states which account can access the
+      queue.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sqs-cross-account-access.png"
+    />
+    <p>You can also publish S3 event notifications to the SQS queue.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/s3-bucket-to-sqs.png"
+    />
+
+    <h2>Message Visibility Timeout</h2>
+    <ul>
+      <li>
+        After a message is polled by a consumer, it becomes invisible to other
+        consumers.
+      </li>
+      <li>
+        The message visibility timeout is 30 seconds; during those 30 seconds,
+        the message will not be returned to any consumer calling
+        <code>ReceiveMessage</code>.
+      </li>
+      <li>
+        Once 30 seconds elapse and the message is not deleted, a consumer can
+        receive the message again.
+      </li>
+      <li>
+        A single message can potentially be processed twice if processing time
+        takes longer than 30 seconds.
+      </li>
+      <li>
+        The consumer can call <code>ChangeMessageVisibility</code> to stop the
+        message from becoming visible again.
+      </li>
+      <li>
+        If the visibility timeout is too high and the consumer crashes, it means
+        the message isn't processed for ages; if it's too low, duplicate
+        processing may occur.
+      </li>
+      <li>
+        Based on what the application is doing, pick a reasonable time for the
+        visibility timeout.
+      </li>
+      <li>
+        The default visibility timeout of 30 seconds can be changed to any value
+        between 0 seconds and 12 hours.
+      </li>
+    </ul>
+
+    <h2>Dead Letter Queues</h2>
+    <ul>
+      <li>
+        If a consumer fails to process a message, it goes back into the queue
+        after the visibility timeout expires.
+      </li>
+      <li>
+        This can potentially cause an infinite loop if something is wrong with
+        the application instance.
+      </li>
+      <li>
+        You can set a <code>MaximumReceives</code> threshold, which if exceeded,
+        sends the message to a dead letter queue (DLQ). The threshold can be set
+        between 1 and 1000.
+      </li>
+      <li>
+        You can debug the messages in the dead letter queue to understand why
+        your application failed to process the message.
+      </li>
+      <li>
+        When our code is fixes we can redrive the messages from the DLQ back
+        into our source queue
+      </li>
+      <li>
+        A good retention period for the DLQ is 14 days, allowing you to read the
+        message and attempt to process it.
+      </li>
+    </ul>
+
+    <h2>Delay Queues</h2>
+    <ul>
+      <li>
+        Delay a message so the consumer does not see it immediately (up to 15
+        minutes).
+      </li>
+      <li>
+        The default delay is 0 seconds, so messages can be seen right away.
+      </li>
+      <li>You can set a default delay at the queue level.</li>
+      <li>
+        You can override the default delay when sending a message by using the
+        <code>DelaySeconds</code> parameter.
+      </li>
+    </ul>
+
+    <h2>Certified Developer Concepts</h2>
+    <h3>Long Polling</h3>
+    <ul>
+      <li>
+        When a consumer requests a message from the queue, it can optionally
+        wait for messages to arrive if there are none in the queue. This is
+        called long polling.
+      </li>
+      <li>
+        Long polling decreases the number of API calls made to SQS while
+        increasing the efficiency and reducing the latency of your application.
+      </li>
+      <li>
+        The long polling wait time can be from 1 second to 20 seconds; it is
+        recommended to use 20 seconds.
+      </li>
+      <li>
+        Consumers wait up to the specified number of seconds while the queue is
+        empty.
+      </li>
+      <li>Long polling is preferable to short polling.</li>
+      <li>
+        Long polling can be enabled at the queue level or the API level using
+        the <code>WaitTimeSeconds</code> parameter.
+      </li>
+    </ul>
+    <h3>Extended Client</h3>
+    <ul>
+      <li>Message size limit is 256KB.</li>
+      <li>
+        To send larger messages, use the SQS Extended Client (Java Library).
+      </li>
+      <li>
+        It uses an S3 bucket as a repository for large data, with the actual
+        message stored in S3.
+      </li>
+      <li>
+        The SQS queue stores a small metadata message linking to the S3 bucket.
+      </li>
+      <li>
+        The consumer reads the metadata message and then retrieves the larger
+        message from S3.
+      </li>
+      <li>
+        This approach is useful for scenarios such as processing a video file.
+      </li>
+    </ul>
+    <h3>Important API Calls</h3>
+    <ul>
+      <li>
+        <strong>CreateQueue:</strong> Accepts
+        <code>MessageRetentionPeriod</code> as an argument.
+      </li>
+      <li>
+        <strong>DeleteQueue:</strong> Deletes the queue and all messages in it.
+      </li>
+      <li><strong>PurgeQueue:</strong> Deletes all messages in the queue.</li>
+      <li>
+        <strong>SendMessage:</strong> Accepts <code>DelaySeconds</code> as an
+        argument.
+      </li>
+      <li>
+        <strong>ReceiveMessage:</strong> Retrieves messages from the queue.
+      </li>
+      <li><strong>DeleteMessage:</strong> Deletes a message from the queue.</li>
+      <li>
+        <strong>MaxNumberOfMessages:</strong> Defaults to 1 but can be set to a
+        maximum of 10 for the <code>ReceiveMessage</code> API.
+      </li>
+      <li>
+        <strong>ReceiveMessageWaitTimeSeconds:</strong> Used for long polling.
+      </li>
+      <li>
+        <strong>ChangeMessageVisibility:</strong> Changes the message timeout.
+      </li>
+    </ul>
+    <p>
+      You can batch API calls for <code>SendMessage</code>,
+      <code>DeleteMessage</code>, and <code>ChangeMessageVisibility</code>,
+      which can save costs.
+    </p>
+
+    <h2>FIFO Queues</h2>
+    <ul>
+      <li>
+        <strong>FIFO</strong> stands for First In First Out, ensuring the
+        ordering of messages in the queue.
+      </li>
+      <li>
+        The consumer pulls messages from the queue in the same order the
+        producer submitted them.
+      </li>
+      <li>
+        Throughput is limited to 300 messages per second without batching and
+        3000 messages per second with batching.
+      </li>
+      <li>Provides exactly-once send capability by removing duplicates.</li>
+      <li>Messages are sent in order.</li>
+      <li>Must end the queue name with .fifo</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/fifo-queue.png"
+    />
+    <h3>FIFO Queues Advanced</h3>
+    <strong>Deduplication</strong>
+    <ul>
+      <li>De-duplication interval is 5 minutes.</li>
+      <li>If the same message is sent within 5 minutes, it is ignored.</li>
+      <li>
+        Two de-duplication methods:
+        <ul>
+          <li>
+            Content-based deduplication: SHA-256 hash of the message body.
+          </li>
+          <li>Explicitly provide a Message Deduplication ID.</li>
+        </ul>
+      </li>
+    </ul>
+    <strong>Grouping</strong>
+    <ul>
+      <li>
+        If you specify the same value for <code>MessageGroupID</code> in an SQS
+        FIFO queue, you can only have one consumer for those messages, and they
+        are consumed in order.
+      </li>
+      <li>
+        To get ordering at the level of a subset of messages, specify different
+        values for <code>MessageGroupID</code>:
+        <ul>
+          <li>
+            Messages that share a common <code>MessageGroupID</code> will be in
+            order within the group and share a consumer.
+          </li>
+          <li>Each group ID can have a different consumer.</li>
+          <li>Ordering across groups is not guaranteed.</li>
+        </ul>
+      </li>
+      <li>
+        This is useful when only some messages need to be processed in order.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sqs-message-grouping.png"
+    />
+
+    <h2>SNS</h2>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/pub-sub-pattern.png"
+    />
+    <p>
+      Event producers send messages to one SNS topic, and as many
+      subscribers/event receivers as needed can listen for SNS notifications.
+      Each subscriber will get all the messages, although filtering messages is
+      possible if desired. SNS supports up to 12,500,000 subscriptions per topic
+      and up to 100,000 topics.
+    </p>
+    <p>
+      Subscribers can include SQS, HTTP/HTTPS (with delivery retries if
+      desired), Lambda, email, SMS messages, kinesis firehose and mobile
+      notifications.
+    </p>
+    <p>
+      Many AWS services send notifications into SNS, including CloudWatch for
+      alarms, Auto Scaling Group notifications, S3 buckets on bucket events,
+      CloudFormation on state changes, and more.
+    </p>
+    <h3>Topic Publishing</h3>
+    <ul>
+      <li>Create a topic.</li>
+      <li>Create one or many subscriptions.</li>
+      <li>Publish to the topic.</li>
+    </ul>
+    <h3>Direct Publish Using the Mobile SDK</h3>
+    <ul>
+      <li>Create a platform application.</li>
+      <li>Create a platform endpoint.</li>
+      <li>Publish to the platform endpoint.</li>
+      <li>Works with Google GCM, Apple APNS, and Amazon ADM.</li>
+    </ul>
+    <h3>Security</h3>
+    <p><strong>Encryption</strong></p>
+    <ul>
+      <li>In-flight encryption using the HTTPS API.</li>
+      <li>At-rest encryption using the KMS keys.</li>
+      <li>
+        Client-side encryption if the client wants to perform
+        encryption/decryption.
+      </li>
+    </ul>
+    <p><strong>Access Controls:</strong></p>
+    <ul>
+      <li>Done through IAM policies to regular access to the SNS API.</li>
+    </ul>
+    <p><strong>SNS Access Policies</strong></p>
+    <ul>
+      <li>Can be used for cross-account access to SNS topics.</li>
+      <li>
+        Useful for allowing other services to write to an SNS topic such as an
+        S3 event.
+      </li>
+    </ul>
+
+    <h2>SQS and SNS - Fan Out Pattern</h2>
+    <p>
+      If you want a message sent to multiple SQS queues, you can use the fan out
+      pattern. Push the message once to an SNS topic, and all SQS queues
+      subscribe to that SNS topic. This approach is fully decoupled and prevents
+      data loss. It allows for data persistence, delayed processing, and
+      processing retries. Additionally, you have the ability to add more SQS
+      subscribers over time.
+    </p>
+    <p>Must make sure the SQS queue access policy allows SNS to write.</p>
+    <p>Cross-Region Delivery works with SQS Queues in other regions.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sqs-fan-out-pattern.png"
+    />
+    <h3>S3 Events to Multiple Queues</h3>
+    <ul>
+      <li>
+        For the same combination of event type (e.g., object create) and prefix
+        (e.g., images/), you can only have one S3 event rule.
+      </li>
+      <li>
+        If you want to send the same notification to multiple SQS queues, use
+        SNS to fan out the event to multiple queues.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sqs-s3-fan-out.png"
+    />
+    <h3>SNS to Kinesis Data Firehose</h3>
+    <p>SNS can send data to Kineses directly.</p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sns-kdf.png"
+    />
+    <h3>SNS and FIFO Topic</h3>
+    <ul>
+      <li>
+        Ordering by Message Group ID ensures that messages within the same group
+        are delivered in the order they were sent.
+      </li>
+      <li>
+        Deduplication can be managed using a Deduplication ID or through
+        content-based deduplication.
+      </li>
+      <li>Can have SQS Standard and FIFO queues as subscribers.</li>
+      <li>
+        Limited throughput, the same as SQS FIFO, supporting up to 300 messages
+        per second without batching and 3,000 with batching.
+      </li>
+      <li>This is in-case you need fan out + ordering + deduplication</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sns-fifo.png"
+    />
+    <h3>Message Filtering</h3>
+    <ul>
+      <li>
+        A JSON policy is used to filter messages sent to SNS topic subscribers.
+      </li>
+      <li>
+        If a subscription doesn't have a filter, it receives every message.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sns-message-filtering.png"
+    />
+
+    <h2>Kinesis Overview</h2>
+    <p>
+      Kinesis makes it easy to collect, process, and analyze streaming data in
+      real-time. It can ingest real-time data such as application logs, metrics,
+      website clickstreams, and IoT telemetry data.
+    </p>
+    <ul>
+      <li>
+        <strong>Kinesis Data Streams:</strong> Capture, process, and store data
+        streams.
+      </li>
+      <li>
+        <strong>Kinesis Data Firehose:</strong> Load data streams into AWS data
+        stores.
+      </li>
+      <li>
+        <strong>Kinesis Data Analytics:</strong> Analyze data streams with SQL
+        or Apache Flink.
+      </li>
+      <li>
+        <strong>Kinesis Video Streams:</strong> Capture, process, and store
+        video streams.
+      </li>
+    </ul>
+
+    <h2>Kinesis Data Streams</h2>
+    <ul>
+      <li>
+        A data stream is made of N shards which are provisioned ahead of time.
+      </li>
+      <li>Data is split across the shards.</li>
+      <li>Shards define stream capacity for ingestion and consumption rate.</li>
+      <li>All Kinesis producers rely on the SDK.</li>
+      <li>The partition key determines which shard the data goes into.</li>
+      <li>
+        Producers send a record to Kinesis, the record consists of the Partition
+        Key and a Data Blob up to 1 MB.
+      </li>
+      <li>
+        Data can be sent at a rate of 1MB/sec or 1,000 messages/sec per shard.
+      </li>
+      <li>
+        Consumers can read 2 MB/sec per shard across all consumers (shared mode)
+        or 2MB/sec per shard per consumer (enhanced mode)
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kinesis-data-streams.png"
+    />
+    <ul>
+      <li>Many producers write into a Kinesis data stream.</li>
+      <li>Data is read by many consumers.</li>
+      <li>
+        Billing is per shard provisioned; you can have as many shards as you
+        want.
+      </li>
+      <li>Retention is 1 day by default, but can be extended to 365 days.</li>
+      <li>
+        Ability to reprocess data; in SQS, the message is gone once it is
+        consumed, but in Kinesis, data can be reprocessed.
+      </li>
+      <li>Once data is inserted in Kinesis, it can't be deleted.</li>
+      <li>Data that shares the same partition key goes to the same shard.</li>
+    </ul>
+    <p>
+      <strong>Consumers:</strong> Kinesis Client Library, AWS SDK, or managed
+      AWS services such as AWS Lambda, Kinesis Data Firehose, Kinesis Data
+      Analytics.
+    </p>
+    <p>
+      <strong>Producers:</strong> AWS SDK, Kinesis Producer Library, Kinesis
+      Agent.
+    </p>
+    <h3>Capacity Modes</h3>
+    <p><strong>Provisioned mode:</strong></p>
+    <ul>
+      <li>
+        You choose the number of shards provisioned, scale manually or via the
+        API.
+      </li>
+      <li>Each shard gets 1 MB/s or 1000 records per second.</li>
+      <li>Each shard gets 2MB/s out (classic or enhanced fan-out consumer).</li>
+      <li>You pay per shard provisioned per hour</li>
+    </ul>
+    <p><strong>On-demand mode:</strong></p>
+    <ul>
+      <li>No need to provision or manage the capacity.</li>
+      <li>
+        Default capacity provisions (4 MB/s in or 4,000 records per second).
+      </li>
+      <li>
+        Automatically scales based on throughput peak during the last 30 days.
+      </li>
+      <li>Pay per stream per hour and data in/out per GB.</li>
+    </ul>
+    <h3>Security</h3>
+    <ul>
+      <li>Deployed within a region.</li>
+      <li>Control access/authorization with IAM policies.</li>
+      <li>Encryption in-flight using HTTPS endpoints.</li>
+      <li>Encryption at rest using KMS.</li>
+      <li>Client-side encryption/decryption is possible.</li>
+      <li>VPC endpoints are available for Kinesis to access within a VPC.</li>
+      <li>Monitor API calls using CloudTrail.</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kinesis-security.png"
+    />
+    <h2>Kinesis Producers</h2>
+    <p>
+      Kinesis producers put data records into data streams. Data records consist
+      of:
+    </p>
+    <ul>
+      <li>Sequence number - unique per partition-key within a shard.</li>
+      <li>
+        Partition key - must specify when putting records into the stream.
+      </li>
+      <li>Data blob up to 1MB.</li>
+    </ul>
+    <p><strong>Producers:</strong></p>
+    <ul>
+      <li>AWS SDK - simple producer.</li>
+      <li>
+        Kinesis Producer Library (KPL) - C++, Java, supports batching,
+        compression, and retries.
+      </li>
+      <li>Kinesis Agent - monitors log files.</li>
+    </ul>
+    <p>
+      <strong>Write throughput:</strong> 1MB/sec or 1000 records per second per
+      shard.
+    </p>
+    <p>
+      <strong>PutRecord API:</strong> Use batching with PutRecord API to save
+      costs and increase throughput.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kinesis-producers.png"
+    />
+    <p>
+      A bad partition key would be one that appears more often than possible
+      other keys, think using browser agent, chrome will be partition key 80% of
+      the time so uneven distribution of 1 shard getting 80% of the data
+      records.
+    </p>
+    <h3>Provisioned Throughput Exceeded</h3>
+    <ul>
+      <li>
+        If you exceed the 1MB/sec limit for a shard, you will get a
+        <code>ProvisionedThroughputExceeded</code> exception.
+      </li>
+      <li>Avoid this by using a distributed partition key.</li>
+      <li>Implement retries with exponential backoff.</li>
+      <li>Increase the number of shards.</li>
+    </ul>
+
+    <h2>Kinesis Consumers</h2>
+    <p>
+      Kinesis consumers get data records from data streams and process them.
+      Examples of consumers include:
+    </p>
+    <ul>
+      <li>AWS Lambda</li>
+      <li>Kinesis Data Analytics</li>
+      <li>Kinesis Data Firehose</li>
+      <li>Custom consumer (AWS SDK) - classic or enhanced fan-out</li>
+      <li>
+        Kinesis Client Library - a library to simplify reading from data streams
+      </li>
+    </ul>
+
+    <h3>Shard (Classic) Consumer vs Enhanced Fan-Out</h3>
+    <p><strong>Classic:</strong></p>
+    <ul>
+      <li>Multiple consumers all share 2MB/s of data from a shard.</li>
+      <li>If too many consumers are added, throughput will be exceeded.</li>
+      <li>Consumers pull data from the shard.</li>
+      <li>Maximum of 5 <code>GetRecords</code> API calls per second.</li>
+      <li>Latency of 200ms.</li>
+      <li>Minimizes cost.</li>
+      <li>
+        Consumers poll data from Kinesis using the <code>GetRecords</code> API
+        call.
+      </li>
+      <li>
+        Returns up to 10MB or up to 10,000 records, then throttles for 5
+        seconds.
+      </li>
+    </ul>
+    <p><strong>Enhanced Fan-Out:</strong></p>
+    <ul>
+      <li>
+        Instead of using the <code>GetRecords</code> API call, uses
+        <code>SubscribeToShard</code>.
+      </li>
+      <li>The shard pushes data to each consumer.</li>
+      <li>2MB/sec per consumer per shard.</li>
+      <li>Supports multiple consuming applications for the same stream.</li>
+      <li>Latency of ~70ms.</li>
+      <li>Higher costs.</li>
+      <li>Kinesis pushes data to consumers over HTTP/2.</li>
+      <li>
+        Soft limit of 5 consumer applications per stream by default, which can
+        be increased.
+      </li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kinesis-consumers.png"
+    />
+    <p><strong>AWS Lambda</strong></p>
+    <ul>
+      <li>Supports both classic and enhanced fan-out consumers.</li>
+      <li>Reads records in batches.</li>
+      <li>Batch size and window size can be configured.</li>
+      <li>
+        If an error occurs, Lambda retries until success or data expiration.
+      </li>
+      <li>Can process up to 10 batches per shard simultaneously.</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kinesis-lambda-consumer.png"
+    />
+
+    <h2>Kinesis Client Library</h2>
+    <ul>
+      <li>
+        Java library that helps read records from a Kinesis Data Stream with
+        distributed applications sharing the read workload.
+      </li>
+      <li>Each shard is to be read by only one KCL instance.</li>
+      <li>If there are N shards, there can be a maximum of N KCL instances.</li>
+      <li>Progress is checkpointed into DynamoDB (requires IAM access).</li>
+      <li>
+        KCL tracks other workers and shares the work among shards using
+        DynamoDB. For example, if there are 6 shards and 4 KCL EC2 instances,
+        instances with less work based on DynamoDB data will consume from 2
+        shards to pick up slack.
+      </li>
+      <li>KCL can run on EC2, EBS, and on-premises.</li>
+      <li>Records are read in order at the shard level.</li>
+    </ul>
+    <p><strong>Versions:</strong></p>
+    <ul>
+      <li>KCL 1.x (supports shared consumer).</li>
+      <li>KCL 2.x (supports shared and enhanced fan-out consumer).</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kcl.png"
+    />
+
+    <h2>Kinesis Operations</h2>
+    <h3>Shard Splitting</h3>
+    <ul>
+      <li>Used to increase the stream capacity.</li>
+      <li>
+        A shard that is reaching the 1 MB/s limit is split into 2 new shards,
+        increasing throughput by 1 MB/s.
+      </li>
+      <li>
+        The old shard is closed and will be deleted once the old data expires.
+      </li>
+      <li>
+        No automatic scaling; you must manually increase/decrease capacity.
+      </li>
+      <li>Can't split into more than two shards in a single operation.</li>
+    </ul>
+    <h3>Merging Shards</h3>
+    <ul>
+      <li>Used to decrease the stream capacity and save money.</li>
+      <li>Can be used to group two low-traffic shards.</li>
+      <li>
+        The old shards are closed and will be deleted once the data expires.
+      </li>
+      <li>Can't merge more than 2 shards in a single operation.</li>
+    </ul>
+
+    <h2>Kinesis Data Firehose Overview</h2>
+    <p>
+      Takes data from kinesis producers (applications, client, SDK, Kinesis
+      Agent) and Kinesis Data Streams, Amazon CloudWatch, AWS IoT. Kinesis Data
+      Firehose can optionally transform the data using a lambda function then
+      batch write the data into destinations.
+    </p>
+    <p>
+      Destinations include S3, Redshift (first written to S3 then copied to
+      Redshift) and Amazon OpenSearch plus third party destinations such as
+      Datadog and splunk. Can also set up a custom HTTP endpoint to receive the
+      data. Can also setup an S3 bucket to send data that failed to send.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kinesis-data-firehose.png"
+    />
+
+    <ul>
+      <li>Fully managed.</li>
+      <li>Serverless.</li>
+      <li>Automatic scaling.</li>
+      <li>Only pay for data going through Firehose.</li>
+      <li>
+        Near real-time:
+        <ul>
+          <li>60-second latency minimum for non-full batches.</li>
+          <li>Or minimum 1MB of data at a time.</li>
+          <li>
+            Can disable buffering to make it 0 seconds, can also set buffer time
+            as high as 900 seconds
+          </li>
+        </ul>
+      </li>
+      <li>
+        Supports many data formats, conversions, transformations, and
+        compression.
+      </li>
+      <li>Supports custom data transformations via AWS Lambda.</li>
+      <li>
+        Can send all data (or specifically failed data if wanted) into an S3
+        bucket.
+      </li>
+    </ul>
+    <p><strong>Process Flow:</strong></p>
+    <ul>
+      <li>Take data from producers.</li>
+      <li>Optionally transform data using a Lambda function.</li>
+      <li>Write data to destinations automatically in batches.</li>
+    </ul>
+    <p><strong>AWS Destinations:</strong></p>
+    <ul>
+      <li>S3</li>
+      <li>Redshift (copy through S3)</li>
+      <li>Elasticsearch</li>
+    </ul>
+    <p><strong>Third-Party Destinations:</strong></p>
+    <ul>
+      <li>Datadog</li>
+      <li>Splunk</li>
+      <li>New Relic</li>
+      <li>MongoDB</li>
+    </ul>
+    <p><strong>Custom Destinations:</strong></p>
+    <ul>
+      <li>HTTP endpoint</li>
+    </ul>
+    <h3>Kinesis Data Streams vs Firehose</h3>
+    <p><strong>Data Streams:</strong></p>
+    <ul>
+      <li>Streaming service for ingest at scale.</li>
+      <li>Write custom code (producer/consumer).</li>
+      <li>Real-time (~200ms).</li>
+      <li>Manage scaling.</li>
+      <li>Data storage for 1 to 365 days.</li>
+      <li>Supports replay capability.</li>
+    </ul>
+    <p><strong>Data Firehose:</strong></p>
+    <ul>
+      <li>
+        Load streaming data into S3/Redshift/OpenSearch/third-party/custom HTTP.
+      </li>
+      <li>Fully managed.</li>
+      <li>Near real-time with a minimum buffer time of 60 seconds.</li>
+      <li>Automatic scaling.</li>
+      <li>No data storage.</li>
+      <li>Doesn't support replay capability.</li>
+    </ul>
+
+    <h2>Kinesis Data Analytics</h2>
+    <ul>
+      <li>Takes data from Kinesis Data Streams or Kinesis Data Firehose.</li>
+      <li>
+        Run SQL statements against the data to analyze it in real-time (can use
+        aggregation and joins).
+      </li>
+      <li>Stream output into "sinks".</li>
+      <li>Sinks can be a Kinesis Data Stream or Kinesis Data Firehose.</li>
+      <li>Fully managed, no servers to provision.</li>
+      <li>Automatic scaling.</li>
+      <li>Real-time analytics.</li>
+      <li>Pay for actual consumption rate.</li>
+      <li>Can create streams out of real-time queries.</li>
+    </ul>
+    <p><strong>Use Cases:</strong></p>
+    <ul>
+      <li>Time-series analytics.</li>
+      <li>Real-time dashboard.</li>
+      <li>Real-time metrics.</li>
+    </ul>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/kinesis-data-analytics.png"
+    />
+    <h3>Amazon Managed Service for Apache Flink</h3>
+    <p>
+      If using Flink can use Java, Scale or SQL to process and analyze streaming
+      data. With Flink you can read from Kinesis Data Streams or Amazon MSK.Cap
+      run any Apache Flink application on a managed cluster on AWS.
+    </p>
+    <p>
+      Compute resources are provisioned automatically as is automatic scaling,
+      get application backups and can use any Flink programming features, can
+      not read from Firehose!
+    </p>
+
+    <h2>Data Ordering for Kinesis vs SQS FIFO</h2>
+    <h3>Kinesis</h3>
+    <ul>
+      <li>
+        Data coming from the same source must always use the same partition key;
+        otherwise, data will be split across shards.
+      </li>
+    </ul>
+    <h3>SQS</h3>
+    <ul>
+      <li>No ordering without SQS FIFO.</li>
+      <li>
+        If you don't use a Group ID, all messages are consumed in the same
+        order.
+      </li>
+      <li>
+        Can use Group ID for related messages; each group can have its own
+        consumer.
+      </li>
+      <li>More groups mean more consumers.</li>
+    </ul>
+
+    <h2>SQS vs SNS vs Kinesis</h2>
+    <h3>SQS</h3>
+    <ul>
+      <li>Consumers pull data from the queue.</li>
+      <li>Once data is processed, it is deleted from the queue.</li>
+      <li>
+        As many consumers as you want can share the queue to process data.
+      </li>
+      <li>No need to provision throughput.</li>
+      <li>Ordering guarantee only on FIFO queues.</li>
+      <li>Individual message delay capability.</li>
+    </ul>
+    <h3>SNS</h3>
+    <ul>
+      <li>Push data to many subscribers.</li>
+      <li>Data is not persisted, lost if not delivered.</li>
+      <li>Pub-Sub model.</li>
+      <li>Up to 100,000 topics and 12,500,000 subscribers.</li>
+      <li>No need to provision throughput.</li>
+      <li>Integrates with SQS for fan-out architecture pattern.</li>
+      <li>FIFO capability for SQS FIFO.</li>
+    </ul>
+    <h3>Kinesis</h3>
+    <ul>
+      <li><strong>Standard:</strong> Pull data with a 2MB shard limit.</li>
+      <li><strong>Enhanced Fan-Out:</strong> 2MB per shard per consumer.</li>
+      <li>Possibility to replay data.</li>
+      <li>
+        Meant for real-time big data analytics and ETL (Extract, Transform,
+        Load).
+      </li>
+      <li>Ordering occurs at the shard level.</li>
+      <li>Data expires after a configurable period (1 to 365 days).</li>
+      <li>
+        Provisioned mode determines throughput by setting the number of shards,
+        also on-demand capacity mode where this is automatically done for us.
+      </li>
+    </ul>
+  </body>
+</html>
