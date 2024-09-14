@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>DynamoDB</h1>
+
+    <h2>Overview</h2>
+    <p>
+      DynamoDB is a NoSQL Database managed by AWS. It is serverless and
+      automatically scales to meet demand. DynamoDB integrates well with Lambda
+      and is highly available with replication across multiple Availability
+      Zones.
+    </p>
+
+    <p>Key features of DynamoDB include:</p>
+    <ul>
+      <li>Scales to massive workloads, distributed databases</li>
+      <li>
+        Can handle millions of requests per second, trillions of rows, and 100s
+        of TB of storage
+      </li>
+      <li>Fast and consistent performance</li>
+      <li>
+        Integrates with IAM for security, authorization, and administration
+      </li>
+      <li>Enables event-driven programming with DynamoDB Streams</li>
+      <li>Low cost and auto-scaling capabilities</li>
+    </ul>
+
+    <h3>Structure</h3>
+    <ul>
+      <li>DynamoDB is made of Tables</li>
+      <li>Each table has a Primary Key which is decided at creation time</li>
+      <li>Each table can have an infinite number of items/rows</li>
+      <li>
+        Each item has attributes, which can be added over time and can be null
+      </li>
+      <li>Max size of a single item is 400KB</li>
+    </ul>
+
+    <h3>Data Types</h3>
+    <p>DynamoDB supports the following data types:</p>
+    <ul>
+      <li>Scalar types: string, number, binary, boolean, null</li>
+      <li>Document Types: list, map</li>
+      <li>Set Types: string set, number set, binary set</li>
+    </ul>
+
+    <h3>NoSQL</h3>
+    <p>
+      NoSQL databases are non-relational databases that are distributed.
+      Examples include MongoDB and DynamoDB. These databases have several
+      distinct characteristics:
+    </p>
+
+    <ul>
+      <li>Do not support query joins</li>
+      <li>All the data required is present in a single row in the database</li>
+      <li>NoSQL databases don't perform aggregations such as SUM, AVG...</li>
+      <li>
+        NoSQL databases scale horizontally (can add more DB instances to scale)
+        which SQL databases don't do so well
+      </li>
+    </ul>
+
+    <h3>Primary Keys</h3>
+    <p>DynamoDB uses two types of primary keys:</p>
+
+    <h4>Partition Key (Hash):</h4>
+    <ul>
+      <li>Partition key must be unique for each item</li>
+      <li>Partition key must be diverse so data is distributed</li>
+      <li>
+        Good use case is user_id for a users table, we want it to be unique and
+        distributed
+      </li>
+    </ul>
+
+    <h4>Partition Key + Sort Key (Hash and range):</h4>
+    <ul>
+      <li>Combination must be unique for each item</li>
+      <li>Data is grouped by the partition key</li>
+      <li>Partition key combined with sort key to create our primary key</li>
+      <li>
+        Good use case is user_id and timestamp of a post for a post table, we
+        want it to be unique and distributed
+      </li>
+    </ul>
+
+    <h2>WCU and RCU - Throughput</h2>
+
+    <p>
+      DynamoDB offers read/write capacity modes to control your table's
+      throughput for both read and write operations.
+    </p>
+
+    <h3>Provisioned Mode</h3>
+    <p>
+      In Provisioned Mode, you specify the number of read/writes per second.
+      This requires planning capacity beforehand, and you pay for provisioned
+      read and write capacity units.
+    </p>
+
+    <ul>
+      <li>RCU - Read Capacity Units</li>
+      <li>WCU - Write Capacity Units</li>
+      <li>
+        Option to setup auto-scaling of throughput to meet demands (set a
+        min/max capacity unit with a target utilization %), better pricing with
+        scaling
+      </li>
+      <li>Throughput can be temporarily exceeded using "Burst Capacity"</li>
+      <li>
+        If Burst Capacity is fully consumed, you'll get the
+        ProvisionedThroughputExceededException
+      </li>
+      <li>Then advised to use exponential backoff retries</li>
+    </ul>
+
+    <p>You can switch between modes every 24 hours.</p>
+
+    <h3>WCU (Write Capacity Unit)</h3>
+    <p>
+      One WCU represents one write per second for an item up to 1KB in size. If
+      the item is larger than 1KB, more WCUs are consumed.
+    </p>
+
+    <ul>
+      <li>Write 10 items per second of 2KB in size, require 20 WCU</li>
+      <li>
+        Write 6 items per second with item size of 4.5KB, require 30 WCU (4.5KB
+        gets rounded up to 5KB, always round up)
+      </li>
+      <li>
+        Write 120 items per minute with size of 2KB, 2 items per second at 2KB
+        per item = 4 WCU
+      </li>
+    </ul>
+
+    <h3>Strongly Consistent Read vs Eventually Consistent Read</h3>
+    <h4>Eventually Consistent Read (default):</h4>
+    <p>
+      If we read directly after a write, we might get stale data due to
+      asynchronous replication between DB servers (only takes about 100ms to
+      sync).
+    </p>
+
+    <h4>Strongly Consistent Read:</h4>
+    <p>
+      If we read data directly after a write, we will get the correct data. Set
+      ConsistentRead parameter to True in API calls (GetItem, BatchGetItem,
+      QueryScan). It consumes twice the RCU and has slightly higher latency.
+    </p>
+
+    <h3>RCU (Read Capacity Unit)</h3>
+    <p>
+      One RCU represents one strongly consistent read per second or two
+      eventually consistent reads per second for an item up to 4KB in size. If
+      the item is larger than 4KB, more RCUs are consumed, rounded up to the
+      nearest 4KB.
+    </p>
+
+    <ul>
+      <li>
+        10 strongly consistent (1) reads per second with item size of 4KB = 10
+        RCUs
+      </li>
+      <li>
+        16 eventually consistent (2) reads per second with item size of 12KB =
+        24 RCUs
+      </li>
+    </ul>
+
+    <h3>Partition Internals</h3>
+    <p>
+      Data is stored in partitions. Partition keys go through a hashing
+      algorithm to determine which partition to use. To compute the number of
+      partitions:
+    </p>
+
+    <ul>
+      <li>by capacity = (RCUs/3000)+(WCUs/1000)</li>
+      <li>by partitions = Total Size/10Gb</li>
+      <li>number of partitions = ceil(max(by_capacity, by_partitions))</li>
+    </ul>
+
+    <p>
+      If you have 10 partitions spread across 10 WCUs and 10 RCUs, each RCU and
+      WCU will have one partition each. WCUs and RCUs are spread evenly across
+      partitions.
+    </p>
+
+    <h3>Throttling</h3>
+    <p>
+      If you exceed RCU or WCU, you get ProvisionedThroughputExceptions. Reasons
+      include:
+    </p>
+
+    <ul>
+      <li>
+        Hot keys - one partition key is being read too many times (particularly
+        popular item)
+      </li>
+      <li>Hot partitions</li>
+      <li>Very large items in a partition</li>
+    </ul>
+
+    <p>Solutions:</p>
+    <ul>
+      <li>Exponential backoff (already included by default in SDK)</li>
+      <li>Distribute partition keys as best as possible</li>
+      <li>If RCU issue, we can use DynamoDB Accelerator (DAX)</li>
+    </ul>
+
+    <h3>On-Demand Mode</h3>
+    <p>
+      On-Demand Mode automatically scales read/writes up/down with your
+      workloads. No capacity planning is needed, and you pay for what you use.
+      It's more expensive (about 2.5x) but suitable for unknown workloads or
+      unpredictable application traffic.
+    </p>
+
+    <h2>Basic APIs</h2>
+
+    <h3>Writing Data</h3>
+    <ul>
+      <li>
+        <strong>PutItem</strong>
+        <ul>
+          <li>Creates or replaces an old item if matching primary key</li>
+          <li>Consumes WCUs</li>
+        </ul>
+      </li>
+      <li>
+        <strong>UpdateItem</strong>
+        <ul>
+          <li>
+            Edits an existing item's attributes or adds a new item if it doesn't
+            exist
+          </li>
+          <li>
+            Can be used to implement Atomic Counters - a numeric attribute that
+            is unconditionally incremented
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Conditional Writes</strong>
+        <ul>
+          <li>
+            Accept a write/update/delete only if conditions are met, otherwise
+            return an error
+          </li>
+          <li>Helps with concurrent access to items</li>
+          <li>No performance impact</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Reading Data</h3>
+    <ul>
+      <li>
+        <strong>GetItem</strong>
+        <ul>
+          <li>Read based on primary key</li>
+          <li>Primary key can be hash or hash and range</li>
+          <li>Eventually consistent read by default</li>
+          <li>
+            Can use strongly consistent read, takes double RCUs and may take
+            longer
+          </li>
+          <li>
+            ProjectionExpression can be specified to retrieve only certain
+            attributes
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Query</strong>
+        <ul>
+          <li>
+            KeyConditionExpression:
+            <ul>
+              <li>Partition key value (must be = operator) - required</li>
+              <li>
+                Sort key value (=, <, >, <=, >=, between, begins with) -
+                optional
+              </li>
+            </ul>
+          </li>
+          <li>
+            FilterExpression:
+            <ul>
+              <li>
+                Additional filtering after the Query operation (before data is
+                returned to API caller)
+              </li>
+              <li>
+                Use only with non-key attributes (does not allow hash or range
+                attributes)
+              </li>
+            </ul>
+          </li>
+          <li>Returns a list of items</li>
+          <li>Specify how many items to be in the list</li>
+          <li>Limit of 1MB of data</li>
+          <li>Ability to paginate the results</li>
+          <li>
+            Can query a table, local secondary index or a global secondary index
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Scan</strong>
+        <ul>
+          <li>Scan the entire table then filter the data</li>
+          <li>Filter is done client side</li>
+          <li>Is inefficient</li>
+          <li>Uses a lot of RCU</li>
+          <li>Return up to 1MB of data, use pagination to keep reading</li>
+          <li>
+            Limit impact using Limit or reduce the size of the result and pause
+          </li>
+          <li>
+            For faster performance use Parallel scan
+            <ul>
+              <li>Multiple workers scanning data at the same time</li>
+              <li>Increases throughput but also RCU usage</li>
+              <li>Limit impact of parallel scans same way as regular scans</li>
+            </ul>
+          </li>
+          <li>
+            Can use ProjectionExpression and FilterExpression, no change to RCU
+            usage
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Deleting Data</h3>
+    <ul>
+      <li>
+        <strong>DeleteItem</strong>
+        <ul>
+          <li>Delete an individual item</li>
+          <li>Ability to perform a conditional delete</li>
+        </ul>
+      </li>
+      <li>
+        <strong>DeleteTable</strong>
+        <ul>
+          <li>Delete a whole table and all its items</li>
+          <li>Much quicker deletion than calling DeleteItem on all items</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Batch Operations</h3>
+    <p>
+      Allows you to save latency by reducing number of API calls. Operations are
+      done in parallel for better efficiency. Part of a batch can fail, must
+      retry for failed items.
+    </p>
+
+    <ul>
+      <li>
+        <strong>BatchWriteItem</strong>
+        <ul>
+          <li>Up to 25 PutItem and/or DeleteItem in one call</li>
+          <li>Up to 16MB of data written, up to 400KB of data per item</li>
+          <li>Can't update items</li>
+          <li>
+            UnprocessedItems exception for failed write operations, use
+            exponential backoff
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>BatchGetItem</strong>
+        <ul>
+          <li>Return items from one or more tables</li>
+          <li>Get up to 100 items, up to 16MB of data</li>
+          <li>Items are retrieved in parallel to minimize latency</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>Conditional Writes</h2>
+    <p>
+      You can specify a condition expression to determine which items should be
+      modified on various factors such as if attribute_exists,
+      attribute_not_exists, attribute_type, contains (for strings), begins_with
+      (for string), numbers being between values.
+    </p>
+
+    <h2>Indexes (GSI + LSI)</h2>
+
+    <h3>LSI - Local Secondary Index</h3>
+    <ul>
+      <li>
+        Alternative sort key for your table, use same partition key as base
+        table
+      </li>
+      <li>
+        Sort key consists of one scalar attribute (string, number or binary)
+      </li>
+      <li>Up to 5 LSIs per table</li>
+      <li>Must be defined at table creation time</li>
+      <li>Can contain some or all of the attributes of the base table</li>
+    </ul>
+
+    <h3>GSI - Global Secondary Index</h3>
+    <ul>
+      <li>
+        Alternative primary key (hash or hash and range) from the base table
+      </li>
+      <li>Speed up queries on non-key attributes</li>
+      <li>
+        Index key consists of scalar attributes (string, number or binary)
+      </li>
+      <li>
+        Attribute projections - some or all of the attributes of the base table
+        (keys_only, include, all)
+      </li>
+      <li>Must provision RCUs and WCUs for the index</li>
+      <li>Can be added/modified after the table creation</li>
+    </ul>
+
+    <h3>Indexes and Throttling</h3>
+    <h4>LSI:</h4>
+    <ul>
+      <li>Uses the WCUs and RCUs of the main table</li>
+      <li>No special throttling considerations</li>
+    </ul>
+
+    <h4>GSI:</h4>
+    <ul>
+      <li>
+        If the writes are throttled on the GSI then the main table will be
+        throttled
+      </li>
+      <li>
+        Choose your GSI partition key carefully and assign WCU capacity
+        carefully
+      </li>
+    </ul>
+
+    <h3>PartiQL</h3>
+    <p>
+      PartiQL is a SQL-compatible query language for DynamoDB. It is used to
+      query and modify data in DynamoDB tables. PartiQL supports both strongly
+      consistent reads and writes, which can help reduce the number of
+      ProvisionedThroughputExceededExceptions.
+    </p>
+    <p>
+      You cna run queries across multiple tables. You can insert, update and
+      delete data using SQL but cannot do joins.
+    </p>
+    <p>
+      PartiQL queries can be run from management console, AWS CLI, and AWS SDKs,
+      DynamoDB APIs, NoSQL Workbench.
+    </p>
+
+    <h2>Optimistic Locking</h2>
+
+    <p>
+      Optimistic Locking is a strategy to ensure an item hasn't changed before
+      you update or delete it. It uses conditional writes, where the write only
+      occurs if some condition is met.
+    </p>
+
+    <ul>
+      <li>Each item has an attribute that acts as a version number</li>
+      <li>
+        Writes will only update if the version number matches what the write
+        expects
+      </li>
+      <li>
+        If two writes occur at the same time expecting the version number to be
+        1, the first write goes through and updates the version number, while
+        the second write fails the condition
+      </li>
+    </ul>
+
+    <p>
+      This approach helps prevent conflicts in concurrent write operations and
+      ensures data integrity in scenarios where multiple processes might be
+      attempting to modify the same item simultaneously.
+    </p>
+
+    <h2>DAX (DynamoDB Accelerator)</h2>
+
+    <p>
+      DAX is a fully managed, highly available, in-memory cache for DynamoDB
+      that provides microsecond latency for cached reads and queries.
+    </p>
+
+    <ul>
+      <li>
+        Doesn't require application logic modification, works with standard
+        DynamoDB APIs
+      </li>
+      <li>Solves the "hot key" partition problem for frequently read items</li>
+      <li>Default cache TTL is 5 minutes</li>
+      <li>DAX exists in a cluster, up to 10 nodes in a cluster</li>
+      <li>
+        Recommended for nodes to be multi-AZ with 3 nodes required as minimum
+        for multi-AZ
+      </li>
+      <li>Secure - encryption at rest with KMS, VPC, IAM, CloudTrail</li>
+    </ul>
+
+    <p>
+      DAX significantly improves read performance for DynamoDB tables,
+      especially for applications that require frequent access to the same data.
+      It acts as a write-through cache, ensuring that the cache is always in
+      sync with the underlying DynamoDB table. There is a 5 minute cache by
+      default, up to 10 nudes in the cluster. It is recommended to have 3 nodes
+      to ensure a multi-AZ setup.
+    </p>
+
+    <h3>DAX vs ElastiCache</h3>
+    <ul>
+      <li>
+        DAX:
+        <ul>
+          <li>Individual objects cache</li>
+          <li>Query and Scans cache</li>
+        </ul>
+      </li>
+      <li>
+        ElastiCache:
+        <ul>
+          <li>Store aggregation results</li>
+        </ul>
+      </li>
+    </ul>
+    <p>
+      While both DAX and ElastiCache can be used to improve performance for
+      DynamoDB, they serve different purposes:
+    </p>
+    <p>
+      DAX is specifically designed for DynamoDB and is best for caching
+      individual items and query results, while ElastiCache is more suitable for
+      storing aggregated data or results from complex calculations.
+    </p>
+
+    <h2>Streams</h2>
+
+    <p>
+      DynamoDB Streams provide an ordered stream of item-level modifications
+      (create/update/delete) in a table. They are highly managed by AWS.
+    </p>
+
+    <ul>
+      <li>
+        Stream records can be:
+        <ul>
+          <li>Sent to Kinesis Data Streams</li>
+          <li>Read by AWS Lambda</li>
+          <li>Read by Kinesis Client Library applications</li>
+        </ul>
+      </li>
+      <li>
+        Data retention for up to 24 hours (without using Kinesis or Lambda to
+        store it somewhere for a longer duration)
+      </li>
+      <li>
+        Use cases:
+        <ul>
+          <li>React to changes in real-time</li>
+          <li>Analytics</li>
+          <li>Insert into derivative tables</li>
+          <li>Insert into OpenSearch for indexing</li>
+          <li>Implement cross-region replication</li>
+        </ul>
+      </li>
+      <li>
+        Ability to choose the information that will be written to the stream:
+        <ul>
+          <li>KEYS_ONLY - only the key attributes of the modified items</li>
+          <li>
+            NEW_IMAGE - the entire item as it appears after it was modified
+          </li>
+          <li>
+            OLD_IMAGE - the entire image as it appeared before it was modified
+          </li>
+          <li>NEW_AND_OLD_IMAGES - both the new and old images of the item</li>
+        </ul>
+      </li>
+      <li>DynamoDB streams are made of shards like Kinesis Data Streams</li>
+      <li>You don't provision shards, automated by AWS</li>
+      <li>
+        Records are NOT retroactively populated in a stream if streams is
+        enabled
+      </li>
+    </ul>
+
+    <h3>Streams and Lambda</h3>
+    <ul>
+      <li>
+        You need to define an Event Source Mapping to read from DynamoDB streams
+      </li>
+      <li>
+        You need to ensure the Lambda function has the appropriate permissions
+      </li>
+      <li>Lambda function is invoked synchronously</li>
+    </ul>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/dynamodb-streams.png"
+      alt="DynamoDB Streams"
+    />
+
+    <h2>TTL (Time to Live)</h2>
+
+    <p>
+      TTL allows you to automatically delete items after an expiry timestamp.
+      Here are key points about TTL:
+    </p>
+
+    <ul>
+      <li>Doesn't consume any WCUs (Write Capacity Units)</li>
+      <li>
+        TTL attribute must be a Number data type with Unix epoch timestamp value
+      </li>
+      <li>Expired items deleted within 48 hours of hitting expiration time</li>
+      <li>
+        Expired items that haven't been deleted yet still appear in
+        reads/queries/scans, could filter them out
+      </li>
+      <li>
+        Expired items are deleted from both LSIs (Local Secondary Indexes) and
+        GSIs (Global Secondary Indexes)
+      </li>
+      <li>
+        A delete operation for each expired item enters the DynamoDB stream (can
+        be used to recover expired items)
+      </li>
+      <li>
+        Use cases:
+        <ul>
+          <li>Reduce stored data</li>
+          <li>Adhere to regulatory compliance</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>CLI</h2>
+
+    <h3>Good to Know</h3>
+    <ul>
+      <li>
+        <code>--projection-expression</code>: one or more attributes to retrieve
+      </li>
+      <li>
+        <code>--filter-expression</code>: filter items before returned to you so
+        DynamoDB does not return everything
+      </li>
+    </ul>
+
+    <h4>Pagination options:</h4>
+    <ul>
+      <li>
+        <code>--page-size</code>: specify that AWS CLI retrieves the full list
+        of items but with a larger number of API calls instead of one API call
+        (default 1000 items), this is to avoid timeouts for large tables
+      </li>
+      <li>
+        <code>--max-items</code>: max number of items to show in the CLI
+        (returns NextToken)
+      </li>
+      <li>
+        <code>--starting-token</code>: specify the last NextToken to retrieve
+        the next set of items
+      </li>
+    </ul>
+
+    <h3>Example Commands</h3>
+
+    <p>Returns filtered items:</p>
+    <pre><code>aws dynamodb scan --table-name &lt;table_name&gt; --filter-expression &lt;attribute&gt; --expression-attribute-values &lt;attribute_value&gt;</code></pre>
+
+    <p>Scan a whole table:</p>
+    <pre><code>aws dynamodb scan --table-name &lt;table_name&gt;</code></pre>
+
+    <h2>Transactions</h2>
+
+    <p>
+      DynamoDB Transactions provide coordinated all-or-nothing operations to
+      multiple items across one or more tables. They offer atomicity,
+      consistency, isolation, and durability (ACID).
+    </p>
+
+    <ul>
+      <li>
+        Read Modes - Eventual Consistency, Strong Consistency, Transactional
+      </li>
+      <li>Write Modes - Standard, Transactional</li>
+      <li>
+        Consumes 2x WCUs and 2x RCUs
+        <ul>
+          <li>Performs 2 operations for every item (prepare and commit)</li>
+        </ul>
+      </li>
+      <li>
+        Two operations (up to 25 unique items or up to 2MB of data)
+        <ul>
+          <li>TransactGetItems - one or more GetItem operations</li>
+          <li>
+            TransactWriteItems - one or more PutItem, UpdateItem and DeleteItem
+            operations
+          </li>
+        </ul>
+      </li>
+      <li>
+        Use cases - financial transactions, multiplayer games, managing orders
+      </li>
+    </ul>
+
+    <h3>Transaction Capacity</h3>
+    <p>
+      Here are examples of how to calculate the required capacity units for
+      transactional operations:
+    </p>
+    <ul>
+      <li>
+        3 transactional writes per second with item size of 5KB
+        <ul>
+          <li>Calculation: 3 * (5KB/1KB) * 2 (transaction cost) = 30 WCUs</li>
+        </ul>
+      </li>
+      <li>
+        5 transactional reads per second with item size of 5KB
+        <ul>
+          <li>Calculation: 5 * (8KB/4KB) * 2 (transaction cost) = 20 RCUs</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>Session State</h2>
+
+    <p>
+      It's common to use DynamoDB to store session state as a cache. Here's how
+      it compares to other AWS services for this purpose:
+    </p>
+
+    <h3>DynamoDB vs ElastiCache (OpenCache):</h3>
+    <ul>
+      <li>ElastiCache (OpenCache) is in-memory, DynamoDB is serverless</li>
+      <li>Both are key/value stores</li>
+    </ul>
+
+    <h3>DynamoDB vs EFS:</h3>
+    <ul>
+      <li>
+        EFS must be attached to EC2 instances via network drive, can't work with
+        Lambda
+      </li>
+    </ul>
+
+    <h3>DynamoDB vs EBS and Instance Store:</h3>
+    <ul>
+      <li>
+        EBS and Instance Store are used for local storage but not across
+        instances
+      </li>
+      <li>They provide local caching but not shared caching</li>
+    </ul>
+
+    <h3>DynamoDB vs S3:</h3>
+    <ul>
+      <li>S3 has higher latency and is not meant for small objects</li>
+    </ul>
+    <p>
+      Given these comparisons, DynamoDB often emerges as a good choice for
+      storing session state, especially in serverless architectures or when you
+      need a balance of performance, scalability, and ease of management.
+      However, the best choice depends on your specific use case, performance
+      requirements, and overall architecture.
+    </p>
+
+    <h2>Partition Strategies</h2>
+
+    <p>
+      When designing your DynamoDB table, it's important to consider strategies
+      to distribute data evenly across partitions and avoid hot keys. Here's a
+      common approach:
+    </p>
+
+    <ul>
+      <li>Our partitions sometimes might result in hot keys</li>
+      <li>
+        A strategy to increase distribution across our partitions can be to take
+        our partition key value and add a random suffix to it
+      </li>
+      <li>
+        Instead of just A and B, we could have: A-1, A-2, A-3, B-1, B-2, B-3...
+      </li>
+      <li>Can use a random suffix or calculated suffix</li>
+    </ul>
+
+    <p>
+      This strategy helps to spread the data more evenly across partitions,
+      reducing the likelihood of hot partitions and improving overall
+      performance.
+    </p>
+
+    <h3>Example</h3>
+    <p>Consider a table where 'user_id' is the partition key:</p>
+    <ul>
+      <li>Without suffix: user_123</li>
+      <li>
+        With random suffix: user_123_7 (where 7 is a random number between 1-10)
+      </li>
+      <li>
+        With calculated suffix: user_123_2022-06-15 (where the date is the
+        current date)
+      </li>
+    </ul>
+
+    <p>
+      When writing data, you would use the suffixed key. When reading, you might
+      need to query multiple suffixed versions of the key to retrieve all
+      relevant data.
+    </p>
+
+    <h2>Conditional Writes, Concurrent Writes and Atomic Writes</h2>
+
+    <ul>
+      <li>
+        <strong>Concurrent writes:</strong>
+        <ul>
+          <li>Second write overwrites the first write</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Conditional writes:</strong>
+        <ul>
+          <li>
+            Only update value if nothing else has updated the item since the
+            request was sent
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Atomic writes:</strong>
+        <ul>
+          <li>Both writes succeed but are combined together</li>
+          <li>
+            Example: Write 1 increases value by 1, write 2 increases value by 2,
+            both writes occur at the same time and value increases by 3
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Batch writes:</strong>
+        <ul>
+          <li>Write many items at the same time</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>
+      Understanding these different types of writes is crucial for managing data
+      consistency and handling concurrent operations in DynamoDB:
+    </p>
+
+    <ul>
+      <li>
+        <strong>Concurrent writes</strong> can lead to data inconsistency if not
+        managed properly, as later writes overwrite earlier ones without
+        considering their content.
+      </li>
+      <li>
+        <strong>Conditional writes</strong> help maintain data integrity by
+        ensuring updates only occur if specified conditions are met, preventing
+        unintended overwrites.
+      </li>
+      <li>
+        <strong>Atomic writes</strong> are useful for operations that need to be
+        treated as a single unit, ensuring that either all parts of a complex
+        update succeed or none do.
+      </li>
+      <li>
+        <strong>Batch writes</strong> improve efficiency by allowing multiple
+        write operations to be performed in a single API call, reducing network
+        overhead.
+      </li>
+    </ul>
+
+    <p>
+      Choosing the appropriate write method depends on your specific use case
+      and consistency requirements. For example, conditional writes are often
+      used in scenarios where you need to prevent lost updates in a highly
+      concurrent environment.
+    </p>
+
+    <h2>Patterns with S3</h2>
+
+    <p>
+      DynamoDB has a limitation of storing only up to 400KB of data per item.
+      This means it's not suitable for storing large files like images or
+      videos. However, we can use a pattern that combines S3 and DynamoDB to
+      handle such scenarios efficiently:
+    </p>
+
+    <ul>
+      <li>Upload large data (like images or videos) to S3</li>
+      <li>Store metadata (such as the S3 object URL) in DynamoDB</li>
+    </ul>
+
+    <p>This pattern offers several advantages:</p>
+
+    <ul>
+      <li>It allows you to index S3 object metadata</li>
+      <li>
+        Querying and scanning DynamoDB is easier and more efficient than
+        querying S3 directly
+      </li>
+      <li>
+        You can set up a workflow where:
+        <ul>
+          <li>When an item is added to S3, it invokes a Lambda function</li>
+          <li>
+            The Lambda function then stores relevant metadata into DynamoDB
+          </li>
+        </ul>
+      </li>
+      <li>
+        This enables you to query DynamoDB for a list of items with certain
+        attributes, which can then be used to retrieve the actual objects from
+        S3
+      </li>
+    </ul>
+
+    <p>
+      This pattern combines the strengths of both services: S3's ability to
+      store large objects cost-effectively, and DynamoDB's fast and flexible
+      querying capabilities. It's particularly useful for applications that need
+      to manage and search through large collections of files, such as image or
+      document management systems.
+    </p>
+
+    <h2>Operations</h2>
+
+    <h3>Table Cleanup</h3>
+    <ul>
+      <li>
+        Scan and delete item:
+        <ul>
+          <li>Very slow</li>
+          <li>Consumes RCU and WCU</li>
+          <li>Expensive</li>
+        </ul>
+      </li>
+      <li>
+        Drop table and recreate table:
+        <ul>
+          <li>Fast</li>
+          <li>Efficient</li>
+          <li>Cheap</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Copying a DynamoDB Table</h3>
+    <ul>
+      <li>Using AWS Data Pipeline</li>
+      <li>
+        Backup and restore into a new table:
+        <ul>
+          <li>Takes some time</li>
+        </ul>
+      </li>
+      <li>
+        Scan + PutItem or BatchWriteItem:
+        <ul>
+          <li>Need to write your own code</li>
+          <li>Can transform the data during the process</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p>
+      When performing operations on DynamoDB tables, it's important to consider
+      the trade-offs between speed, cost, and flexibility. For table cleanup,
+      dropping and recreating the table is generally faster and cheaper than
+      scanning and deleting items individually. When copying tables, the method
+      you choose depends on your specific needs, such as whether you need to
+      transform the data or how quickly you need the copy to be available.
+    </p>
+
+    <h2>Security and Other Features</h2>
+
+    <h3>Security</h3>
+    <ul>
+      <li>
+        VPC endpoints available to access DynamoDB without using the internet
+      </li>
+      <li>Access fully controlled by IAM</li>
+      <li>Encryption at rest using AWS KMS and in-transit using SSL/TLS</li>
+    </ul>
+
+    <h3>Backup and Restore</h3>
+    <ul>
+      <li>Point-in-time recovery like RDS</li>
+      <li>No performance impact</li>
+    </ul>
+
+    <h3>Global Tables</h3>
+    <ul>
+      <li>Need to enable DynamoDB streams</li>
+      <li>Multi-region</li>
+      <li>Multi-active</li>
+      <li>Fully replicated</li>
+      <li>High performance</li>
+    </ul>
+
+    <h3>DynamoDB Local</h3>
+    <ul>
+      <li>Can run on local machine without using DynamoDB web service</li>
+      <li>Develop and test apps locally</li>
+    </ul>
+
+    <h3>Data Migration</h3>
+    <p>
+      AWS Database Migration Service can be used to migrate data into DynamoDB
+    </p>
+
+    <h3>User Authentication and Access Control</h3>
+    <ul>
+      <li>
+        Users can interact with DynamoDB directly using an identity provider
+        such as Amazon Cognito
+      </li>
+      <li>Users provided temporary access credentials and an IAM role</li>
+      <li>
+        IAM role has fine-grained access control to only access data they own
+      </li>
+      <li>Can limit specific attributes the user can see</li>
+    </ul>
+
+    <p>
+      These features enhance DynamoDB's security, scalability, and flexibility.
+      The encryption options and IAM integration provide robust security. Global
+      Tables and backup features improve data availability and disaster recovery
+      capabilities. DynamoDB Local is a useful tool for development and testing,
+      while the migration service facilitates moving data into DynamoDB. The
+      user authentication features allow for secure, direct user interaction
+      with the database, which can be particularly useful in web and mobile
+      applications.
+    </p>
+  </body>
+</html>
