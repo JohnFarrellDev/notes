@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AWS Developer Associate Notes</title>
+    <link rel="stylesheet" href="./reset.css" />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <a href="./index.html">Home</a>
+
+    <h1>API Gateway</h1>
+
+    <h2>Overview</h2>
+
+    <p>
+      API Gateway is a fully managed service that makes it easy for developers
+      to create, publish, maintain, monitor, and secure APIs at any scale. Here
+      are its key features and capabilities:
+    </p>
+
+    <ul>
+      <li>Make our Lambda functions accessible via API calls</li>
+      <li>Support for WebSocket protocol</li>
+      <li>Handle API versioning</li>
+      <li>Handle different environments (dev, prod)</li>
+      <li>Handle security (authentication and authorization)</li>
+      <li>Create API keys</li>
+      <li>Request throttling</li>
+      <li>Swagger/Open API import to define APIs</li>
+      <li>Transform and validate requests/responses</li>
+      <li>Generate SDK and API specifications</li>
+      <li>Cache API responses</li>
+    </ul>
+
+    <p>
+      API Gateway acts as a "front door" for applications to access data,
+      business logic, or functionality from your backend services, such as
+      workloads running on EC2, code running on AWS Lambda, or any web
+      application. It provides a RESTful API interface that is customizable and
+      can integrate with any AWS API services.
+    </p>
+
+    <h3>Integrates With</h3>
+
+    <h4>Lambda Function</h4>
+    <ul>
+      <li>Easy way to expose REST API backed by AWS Lambda</li>
+      <li>Invoke Lambda function</li>
+    </ul>
+
+    <h4>HTTP</h4>
+    <ul>
+      <li>Expose HTTP endpoints in the backend</li>
+      <li>Why: Add rate limiting, caching, user authentication, API keys</li>
+    </ul>
+
+    <h4>AWS Service</h4>
+    <ul>
+      <li>Expose any AWS API through the API Gateway</li>
+      <li>
+        Example: Start an AWS Step Function workflow, post a message to SQS
+      </li>
+      <li>Why: Add authentication, deploy publicly, rate limit</li>
+    </ul>
+
+    <h3>Endpoint Types</h3>
+
+    <h4>Edge-Optimized</h4>
+    <ul>
+      <li>For global clients</li>
+      <li>
+        Requests routed through CloudFront edge locations for improved latency
+      </li>
+      <li>API Gateway lives in only one region</li>
+    </ul>
+
+    <h4>Regional</h4>
+    <ul>
+      <li>For clients within the same region</li>
+      <li>
+        Could manually combine with CloudFront (more control over the caching
+        strategies and distribution)
+      </li>
+    </ul>
+
+    <h4>Private</h4>
+    <ul>
+      <li>
+        Can only be accessed from your VPC using an interface VPC endpoint (ENI)
+      </li>
+      <li>Use a resource policy to define access</li>
+    </ul>
+
+    <p>
+      API Gateway's integration capabilities allow it to work seamlessly with
+      various AWS services and external HTTP endpoints. This flexibility enables
+      developers to create powerful, scalable APIs that can leverage the full
+      range of AWS services.
+    </p>
+
+    <p>
+      The different endpoint types cater to various use cases, from globally
+      distributed applications to private, secure APIs within a VPC. Choosing
+      the right endpoint type depends on your specific requirements for
+      performance, security, and geographic distribution of your clients.
+    </p>
+
+    <h3>Security</h3>
+    <p>
+      API Gateway supports various security mechanisms to secure your APIs.
+      These include:
+    </p>
+    <ul>
+      <li>User authentication through IAM roles for internal applications</li>
+      <li>API keys for public APIs to track usage</li>
+      <li>OAuth 2.0 for authentication with AWS Cognito</li>
+      <li>Custom authorizers for more complex authentication logic</li>
+    </ul>
+    <p>
+      Custom Domain Name HTTPS security through integration with AWS Certificate
+      Manager (ACM) certificates
+    </p>
+    <ul>
+      <li>
+        If edge-optimized the certificate needs to be in us-east-1 (N. Virginia)
+        region
+      </li>
+      <li>
+        If regional, the certificate must be in the same region as the API
+        Gateway
+      </li>
+      <li>Must setup CNAME or A-record in Route 53</li>
+    </ul>
+
+    <h2>Stages and Deployment</h2>
+
+    <p>
+      Understanding the deployment process in API Gateway is crucial for
+      effective API management:
+    </p>
+
+    <ul>
+      <li>
+        Making changes in the API Gateway does not mean they're effective
+        immediately
+      </li>
+      <li>You need to make a "deployment" for changes to take effect</li>
+      <li>
+        Changes are deployed to stages; you can have as many stages as you want
+        and name them what you want
+      </li>
+      <li>Stages can be rolled back as a history of deployments is kept</li>
+    </ul>
+
+    <h3>Stage Variables</h3>
+
+    <p>
+      Stage variables are like environment variables for API Gateway. They offer
+      flexibility in managing your API configurations:
+    </p>
+
+    <ul>
+      <li>Use them to change often changing configuration values</li>
+      <li>
+        Can be used in:
+        <ul>
+          <li>Lambda function ARN</li>
+          <li>HTTP endpoint</li>
+          <li>Parameter mapping templates</li>
+        </ul>
+      </li>
+      <li>
+        Use cases:
+        <ul>
+          <li>Configure HTTP endpoints your stages talk to</li>
+          <li>
+            Pass configuration parameters to AWS Lambda through mapping
+            templates
+          </li>
+        </ul>
+      </li>
+      <li>Stage variables are passed to the "context" object in AWS Lambda</li>
+      <li>The format is: ${stageVariables.variableName}</li>
+    </ul>
+
+    <p>
+      Stage variables provide a powerful way to manage different configurations
+      for your API across various stages (e.g., development, testing,
+      production). They allow you to change behavior of your API without
+      changing the API setup, making it easier to manage multiple environments
+      or versions of your API.
+    </p>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-stage-variables.png"
+    />
+
+    <h2>Canary Deployments</h2>
+
+    <p>
+      API Gateway supports canary deployments, allowing you to test new versions
+      of your API with a subset of your traffic before fully rolling out
+      changes:
+    </p>
+
+    <ul>
+      <li>
+        Possible to enable canary deployments for any stage, typically used for
+        production
+      </li>
+      <li>Choose the percentage of traffic the "canary" channel receives</li>
+      <li>
+        For example, 95% of traffic goes to the original stage, 5% to the canary
+        stage (these percentages can be adjusted)
+      </li>
+      <li>Metrics and logs are kept separate for each stage</li>
+      <li>
+        If the canary stage is performing well, you can promote the canary
+        channel to become the main stage
+      </li>
+    </ul>
+
+    <p>Canary deployments provide several benefits:</p>
+
+    <ul>
+      <li>
+        Risk Mitigation: Test new features or changes with a small portion of
+        your traffic, minimizing the impact of potential issues
+      </li>
+      <li>
+        Gradual Rollout: Slowly increase the percentage of traffic to the new
+        version as confidence grows
+      </li>
+      <li>
+        Easy Rollback: If issues are detected, traffic can be quickly redirected
+        back to the original version
+      </li>
+      <li>
+        Performance Comparison: Direct comparison of metrics between the
+        original and canary versions
+      </li>
+    </ul>
+
+    <p>
+      This approach to deployment allows for safer, more controlled updates to
+      your API, reducing the risk of widespread issues and providing a mechanism
+      for gathering real-world performance data before full deployment.
+    </p>
+
+    <h2>Integration Types and Mappings</h2>
+
+    <h3>Integration Types</h3>
+
+    <h4>MOCK</h4>
+    <ul>
+      <li>
+        Return a response without sending a request to the backend for testing
+        purposes
+      </li>
+    </ul>
+
+    <h4>HTTP/AWS (Lambda and other services)</h4>
+    <ul>
+      <li>Must configure both the integration request and response</li>
+      <li>
+        Setup data mapping using mapping templates for the request and response
+      </li>
+    </ul>
+
+    <h4>AWS_PROXY (Lambda Proxy)</h4>
+    <ul>
+      <li>Incoming request from the client is the input to the Lambda</li>
+      <li>The function is responsible for the logic of request/response</li>
+      <li>No mapping templates</li>
+      <li>
+        Headers, query string parameters, body, etc. are passed as arguments
+      </li>
+    </ul>
+
+    <h4>HTTP_PROXY</h4>
+    <ul>
+      <li>No mapping template</li>
+      <li>HTTP request passed to the backend</li>
+      <li>HTTP response from the backend is forwarded by API Gateway</li>
+    </ul>
+
+    <h3>Mapping Templates</h3>
+    <p>Mapping templates can be used to modify the request and response:</p>
+    <ul>
+      <li>Rename/Modify query string parameters</li>
+      <li>Modify body content</li>
+      <li>Add headers</li>
+      <li>Uses Velocity Template Language (VTL): for loop, if, etc.</li>
+      <li>Filter output results (remove unnecessary data)</li>
+    </ul>
+
+    <h3>Example: Mapping JSON to XML with SOAP</h3>
+    <p>
+      API Gateway can act as a translator between JSON-based REST APIs and
+      XML-based SOAP APIs:
+    </p>
+    <ul>
+      <li>SOAP APIs are XML based whereas REST APIs are JSON based</li>
+      <li>
+        API Gateway needs to extract data from the request (path, payload,
+        header)
+      </li>
+      <li>
+        Build SOAP message to forward to API, send SOAP message to backend
+      </li>
+      <li>Receive XML response from the API</li>
+      <li>Convert XML to JSON to return to the users</li>
+    </ul>
+
+    <p>
+      These integration types and mapping capabilities make API Gateway a
+      powerful tool for creating, managing, and transforming APIs. They allow
+      you to adapt to various backend systems, perform data transformations, and
+      even act as a bridge between different API paradigms like REST and SOAP.
+    </p>
+
+    <h2>Swagger and OpenAPI 3.0</h2>
+
+    <p>
+      Swagger and OpenAPI 3.0 provide a common way of defining REST APIs using
+      API definition as code. This approach offers several benefits when working
+      with API Gateway:
+    </p>
+
+    <ul>
+      <li>
+        Import existing Swagger/OpenAPI 3.0 spec to API Gateway:
+        <ul>
+          <li>Method</li>
+          <li>Method request</li>
+          <li>Integration request</li>
+          <li>Method response</li>
+          <li>
+            Plus AWS extensions for API Gateway and setup of every single option
+          </li>
+        </ul>
+      </li>
+      <li>Can export current API as Swagger/OpenAPI</li>
+      <li>Swagger can be written in YAML or JSON</li>
+      <li>Using Swagger, we can generate SDK for our applications</li>
+    </ul>
+
+    <p>
+      This integration between Swagger/OpenAPI and API Gateway streamlines the
+      process of creating, documenting, and managing APIs. It allows developers
+      to define their APIs in a standardized format and easily import them into
+      API Gateway, as well as export existing APIs for documentation or further
+      development.
+    </p>
+
+    <p>
+      The ability to generate SDKs from Swagger definitions is particularly
+      useful, as it can significantly reduce the time and effort required to
+      integrate the API into client applications across various programming
+      languages and platforms.
+    </p>
+
+    <h2>Gateway Caching</h2>
+
+    <p>
+      API Gateway offers caching capabilities to improve performance and reduce
+      load on your backend services. Here are the key points about Gateway
+      Caching:
+    </p>
+
+    <ul>
+      <li>Reduces the number of calls made to the backend</li>
+      <li>Default TTL (Time To Live) is 300 seconds</li>
+      <li>Caches are defined per stage</li>
+      <li>Possible to override cache settings per method</li>
+      <li>Cache encryption option available</li>
+      <li>Cache capacity ranges between 0.5GB to 237GB</li>
+      <li>
+        Cache is expensive, makes sense in production but not in
+        development/test environments
+      </li>
+    </ul>
+
+    <p>
+      Implementing caching in API Gateway can significantly improve the
+      performance of your API, especially for frequently accessed data that
+      doesn't change often. By serving responses from the cache, you can reduce
+      latency for your API consumers and decrease the load on your backend
+      systems.
+    </p>
+
+    <p>
+      However, it's important to carefully consider your caching strategy. While
+      caching can provide substantial benefits in production environments with
+      high traffic, it may not be cost-effective for development or testing
+      stages where traffic is lower and frequent changes are being made to the
+      API.
+    </p>
+
+    <p>
+      When implementing caching, consider factors such as the volatility of your
+      data, the acceptable level of data staleness for your use case, and the
+      traffic patterns of your API. You may need to adjust cache settings for
+      different API methods based on these considerations.
+    </p>
+
+    <h3>Cache Invalidation</h3>
+
+    <p>API Gateway provides methods to invalidate the cache when needed:</p>
+
+    <ul>
+      <li>Able to flush the entire cache immediately from the AWS Console</li>
+      <li>
+        Clients can invalidate the cache with the header
+        <code>Cache-Control:max-age=0</code> if they have proper IAM
+        authorization
+      </li>
+    </ul>
+
+    <p>
+      Cache invalidation is crucial for ensuring that your API consumers always
+      receive the most up-to-date information. The ability to flush the cache
+      from the AWS Console is useful for administrative purposes, while allowing
+      clients to invalidate the cache gives you fine-grained control over cache
+      behavior at the request level.
+    </p>
+
+    <h2>Usage Plans and API Keys</h2>
+
+    <h3>Usage Plan</h3>
+    <ul>
+      <li>
+        Defines who can access one or more deployed API stages and methods
+      </li>
+      <li>Controls how much and how fast they can access the API</li>
+      <li>Uses API keys to identify API clients and meter access</li>
+      <li>Configures throttling limits and quota limits enforced on clients</li>
+    </ul>
+
+    <h3>API Keys</h3>
+    <ul>
+      <li>Alphanumeric string values to distribute to your customers</li>
+      <li>Can be used with usage plans to control access</li>
+      <li>Throttling limits are applied at the API key level</li>
+      <li>Quota limits represent the overall number of maximum requests</li>
+    </ul>
+
+    <h3>Configuring a Usage Plan</h3>
+    <ol>
+      <li>
+        Create one or more APIs, configure the methods to require an API key,
+        and deploy the APIs to stages
+      </li>
+      <li>
+        Generate or import API keys to distribute to application developers
+        (customers)
+      </li>
+      <li>Create a usage plan with desired throttle and quota limits</li>
+      <li>Associate API stages and API keys with the usage plan</li>
+      <li>
+        Callers of the API must supply an API key in the
+        <code>x-api-key</code> header in the request to the API
+      </li>
+    </ol>
+
+    <p>
+      Usage Plans and API Keys provide a powerful mechanism for controlling and
+      monitoring access to your APIs. They allow you to manage who can access
+      your APIs, set limits on how much they can use them, and track usage per
+      client. This is particularly useful for monetizing APIs, enforcing service
+      level agreements, or managing resources in multi-tenant environments.
+    </p>
+
+    <p>
+      By requiring API keys and associating them with usage plans, you can
+      create different tiers of access, implement rate limiting to protect your
+      backend services from overload, and gather detailed analytics on API usage
+      patterns. This granular control helps in maintaining the performance and
+      security of your APIs while providing flexibility in how you expose your
+      services to different clients or customer groups.
+    </p>
+
+    <h2>Monitoring, Logging and Tracing</h2>
+
+    <h3>CloudWatch Logs</h3>
+    <ul>
+      <li>Enable CloudWatch logging at the Stage level (with log level)</li>
+      <li>Can override settings on a per API basis</li>
+      <li>Log contains information about request/response body</li>
+    </ul>
+
+    <h3>X-Ray</h3>
+    <ul>
+      <li>
+        Enable tracing to get extra information about requests in API Gateway
+      </li>
+      <li>X-Ray API Gateway + AWS Lambda gives you all the information</li>
+    </ul>
+
+    <h3>CloudWatch Metrics</h3>
+    <ul>
+      <li>Metrics are by stage</li>
+      <li>Can enable detailed metrics</li>
+      <li>CacheHitCount and CacheMissCount to understand cache efficiency</li>
+      <li>Count - total number of API requests in a given period</li>
+      <li>
+        IntegrationLatency - time between when API Gateway relays a request to
+        the backend and when it receives a response
+      </li>
+      <li>
+        Latency - time between when API Gateway receives a request from the
+        client and when it returns a response to the client (integration latency
+        + gateway overhead)
+      </li>
+      <li>Max time an API Gateway request lasts is 29 seconds</li>
+      <li>4XX errors (client-side errors)</li>
+      <li>5XX errors (server-side errors)</li>
+    </ul>
+
+    <h3>Throttling</h3>
+    <h4>Account Limit</h4>
+    <ul>
+      <li>
+        API Gateway throttles requests at 10,000 requests per second across all
+        APIs
+      </li>
+      <li>Soft limit that can be increased on request</li>
+      <li>In case of throttling, see 429 Too Many Requests error</li>
+      <li>Can try exponential backoff retries</li>
+      <li>
+        Can set stage limit and method limits to improve performance (so one
+        stage doesn't use all the quota)
+      </li>
+      <li>Or use usage plan to throttle a certain customer</li>
+    </ul>
+
+    <h4>4XX Errors (Client Side)</h4>
+    <ul>
+      <li>400 - Bad Request</li>
+      <li>403 - Access Denied, WAF filtered</li>
+      <li>429 - Quota Exceeded, Throttle</li>
+    </ul>
+
+    <h4>5XX Errors (Server Side)</h4>
+    <ul>
+      <li>
+        502 - Bad Gateway Exception, usually for an incompatible output returned
+        from a Lambda proxy integration
+      </li>
+      <li>503 - Service Unavailable Exception</li>
+      <li>
+        504 - Integration Failure - Request Timeout Exception, request took
+        longer than 29 seconds
+      </li>
+    </ul>
+
+    <p>
+      Effective monitoring, logging, and tracing are crucial for maintaining and
+      optimizing your API Gateway. CloudWatch Logs provide detailed information
+      about requests and responses, while X-Ray offers deep insights into
+      request flows, especially when integrated with Lambda. CloudWatch Metrics
+      give you quantitative data on your API's performance and usage.
+    </p>
+
+    <p>
+      Understanding and managing throttling is key to ensuring your API's
+      stability and fairness of access. By setting appropriate limits and
+      handling throttling errors gracefully, you can protect your backend
+      services from overload and provide a consistent experience to your API
+      consumers.
+    </p>
+
+    <p>
+      Familiarity with common error codes helps in quick troubleshooting and
+      resolution of issues. 4XX errors indicate client-side problems that often
+      require action from the API consumer, while 5XX errors point to
+      server-side issues that you as the API provider need to address.
+    </p>
+
+    <h2>CORS (Cross-Origin Resource Sharing)</h2>
+
+    <p>
+      CORS is a crucial security feature that controls how web applications from
+      one domain can interact with resources from a different domain. In the
+      context of API Gateway:
+    </p>
+
+    <ul>
+      <li>Must be enabled to receive API calls from another domain</li>
+      <li>
+        The OPTIONS pre-flight request must contain the following headers:
+        <ul>
+          <li>Access-Control-Allow-Methods</li>
+          <li>Access-Control-Allow-Headers</li>
+          <li>Access-Control-Allow-Origin</li>
+        </ul>
+      </li>
+      <li>CORS can be enabled through the console</li>
+    </ul>
+
+    <p>
+      When CORS is not properly configured, browsers will block requests from
+      your web application to your API Gateway endpoints if they are hosted on
+      different domains. This is a security measure to prevent unauthorized
+      cross-origin access.
+    </p>
+
+    <p>
+      Enabling CORS in API Gateway allows you to specify which domains can
+      access your API, what HTTP methods are allowed, and what headers can be
+      used in the request. This gives you fine-grained control over access to
+      your API resources.
+    </p>
+
+    <p>
+      It's important to note that while CORS can be easily enabled through the
+      AWS Console, you should carefully consider your CORS configuration to
+      ensure it's not overly permissive. Only allow access from trusted domains
+      and with the minimum necessary permissions to maintain the security of
+      your API.
+    </p>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/api-gateway-cors.png"
+    />
+
+    <h2>Authentication and Authorization</h2>
+
+    <h3>IAM Authentication and Authorization</h3>
+    <ul>
+      <li>Create an IAM policy for authorization and attach to User/Role</li>
+      <li>Authentication = IAM</li>
+      <li>Authorization = IAM Policy</li>
+      <li>Good to provide access within AWS</li>
+      <li>Leverage Sig v4 capability where IAM credentials are in headers</li>
+    </ul>
+
+    <h3>Resource Policies</h3>
+    <ul>
+      <li>Allow for cross account access combined with IAM security</li>
+      <li>Allow for a specific source IP address</li>
+      <li>Allow for a VPC endpoint</li>
+    </ul>
+
+    <h3>Cognito User Pools</h3>
+    <ul>
+      <li>Cognito fully manages user lifecycle</li>
+      <li>Token expires automatically</li>
+      <li>API gateway verifies identity automatically from AWS Cognito</li>
+      <li>No custom implementation required</li>
+      <li>Authentication = Cognito user pools</li>
+      <li>Authorization = API gateway methods</li>
+    </ul>
+
+    <h3>Lambda Authorizer</h3>
+    <ul>
+      <li>Token-based authorizer (bearer token) - ex JWT or OAuth</li>
+      <li>Request-based parameter, either in headers or query string</li>
+      <li>
+        Lambda must return an IAM policy for the user, result policy is cached
+      </li>
+      <li>Authentication = External</li>
+      <li>Authorization = Lambda function</li>
+      <li>Used for third party authentication</li>
+    </ul>
+
+    <p>
+      API Gateway offers multiple methods for authentication and authorization,
+      each suited to different use cases:
+    </p>
+
+    <ul>
+      <li>
+        <strong>IAM Authentication and Authorization</strong> is ideal for
+        internal AWS services and applications where you want to leverage
+        existing IAM users and roles.
+      </li>
+      <li>
+        <strong>Resource Policies</strong> provide additional control, allowing
+        you to restrict access based on source IP or VPC endpoint, or enable
+        cross-account access.
+      </li>
+      <li>
+        <strong>Cognito User Pools</strong> offer a fully managed user
+        authentication service, perfect for customer-facing applications where
+        you don't want to handle user management yourself.
+      </li>
+      <li>
+        <strong>Lambda Authorizers</strong> provide the most flexibility,
+        allowing you to implement custom authentication logic or integrate with
+        third-party authentication providers.
+      </li>
+    </ul>
+
+    <p>
+      Choosing the right authentication and authorization method depends on your
+      specific use case, security requirements, and the nature of your API
+      consumers. It's crucial to carefully consider these options to ensure your
+      API is both secure and accessible to the right users.
+    </p>
+
+    <h2>REST API vs HTTP API</h2>
+
+    <h3>HTTP APIs</h3>
+    <ul>
+      <li>Low-latency</li>
+      <li>Cost-effective AWS Lambda proxy</li>
+      <li>HTTP proxy APIs and private integration (no mapping of data)</li>
+      <li>
+        Only supports OIDC and OAuth 2.0 authorization and built-in support for
+        CORS
+      </li>
+      <li>No usage plans and API keys</li>
+    </ul>
+
+    <h3>REST APIs</h3>
+    <ul>
+      <li>All features except Native OpenID Connect/OAuth 2.0</li>
+      <li>Has usage plans and API keys</li>
+    </ul>
+
+    <p>
+      API Gateway offers two main types of APIs: HTTP APIs and REST APIs. Each
+      type has its own strengths and is suited for different use cases:
+    </p>
+
+    <p>
+      <strong>HTTP APIs</strong> are designed for simplicity and performance.
+      They're ideal for scenarios where you need basic API functionality with
+      low latency and cost. They're particularly well-suited for serverless
+      applications using AWS Lambda, or for creating simple proxy APIs. However,
+      they have limitations in terms of advanced features and authorization
+      options.
+    </p>
+
+    <p>
+      <strong>REST APIs</strong> offer a fuller feature set and more
+      flexibility. They support a wider range of integration types and
+      authorization methods, and include features like usage plans and API keys.
+      This makes them suitable for more complex API scenarios where you need
+      fine-grained control over API behavior, request/response transformations,
+      or advanced monitoring and throttling capabilities.
+    </p>
+
+    <p>
+      When choosing between HTTP APIs and REST APIs, consider factors such as
+      your performance requirements, the complexity of your API, your
+      authorization needs, and whether you need features like usage plans or API
+      keys. HTTP APIs might be sufficient for simple, high-performance APIs,
+      while REST APIs are better for more complex, feature-rich API
+      implementations.
+    </p>
+
+    <h2>WebSocket API</h2>
+
+    <p>
+      WebSocket APIs in API Gateway enable two-way interactive communication
+      between clients and servers, offering several advantages:
+    </p>
+
+    <ul>
+      <li>Two-way interactive communication between client and server</li>
+      <li>Server can push data to the client</li>
+      <li>Enables stateful applications</li>
+      <li>
+        Often used in real-time applications, chat applications, collaborative
+        platforms, multiplayer games, financial trading platforms
+      </li>
+      <li>Works with AWS services or HTTP endpoints</li>
+    </ul>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/api-gateway-websocket.png"
+      alt="WebSocket API Architecture"
+    />
+
+    <p>Key features of WebSocket APIs in API Gateway:</p>
+
+    <ul>
+      <li>Incoming JSON messages are routed to different backends</li>
+      <li>If no routes are specified, messages are sent to $default</li>
+      <li>
+        You can specify a route selection expression to select the field on JSON
+        to route from
+      </li>
+    </ul>
+
+    <h3>Operations</h3>
+    <ul>
+      <li>POST - send a message from the server to the client</li>
+      <li>
+        GET - gets the latest connection states of the connected WebSocket
+        client
+      </li>
+      <li>
+        DELETE - disconnect the connected client from the WebSocket connection
+      </li>
+    </ul>
+
+    <h2>Architecture</h2>
+
+    <p>
+      API Gateway can serve as a central interface for all microservices in your
+      company, providing several benefits:
+    </p>
+
+    <ul>
+      <li>
+        Create a single interface for all the microservices in your company
+      </li>
+      <li>Use API endpoints with various resources</li>
+      <li>Apply a simple domain name and SSL certificates</li>
+      <li>
+        Can apply forwarding and transformation rules at the API gateway level
+      </li>
+    </ul>
+
+    <p>
+      This architectural approach allows for a more streamlined and manageable
+      API structure. By centralizing your APIs through API Gateway, you can
+      simplify client interactions, improve security with a single point of
+      entry, and gain more control over how requests are processed and routed to
+      your backend services.
+    </p>
+
+    <p>
+      The ability to apply forwarding and transformation rules at the API
+      Gateway level is particularly powerful. It allows you to modify requests
+      and responses as they pass through the gateway, enabling you to adapt your
+      backend services' interfaces to meet the needs of your API consumers
+      without changing the backend code.
+    </p>
+  </body>
+</html>
