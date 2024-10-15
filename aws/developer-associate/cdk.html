@@ -12,5 +12,187 @@
     <div>
       <a href="./index.html">Back to Home</a>
     </div>
+    <h2>Overview</h2>
+    <p>
+      The Cloud Development Kit (CDK) allows you to define your cloud
+      infrastructure in code, supporting languages such as
+      JavaScript/TypeScript, Python, Java, and .NET. It supersedes
+      CloudFormation, offering a more programmatic approach to infrastructure
+      management.
+    </p>
+    <p>
+      CDK contains high-level components called constructs, which represent
+      cloud resources such as VPCs, EC2 instances, ECS clusters, and Application
+      Load Balancers. When you write CDK code, it is compiled into a
+      CloudFormation template (in JSON or YAML format) if the code is valid.
+    </p>
+    <p>
+      Unlike traditional YAML configurations, which are prone to errors and lack
+      type checking, CDK requires a valid compilation. This approach reduces the
+      likelihood of configuration mistakes and improves overall reliability.
+    </p>
+    <p>
+      CDK is particularly well-suited for working with Lambda functions and
+      Docker containers in ECS or EKS environments, making it a powerful tool
+      for modern cloud-native application development.
+    </p>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cdk.png"
+    />
+
+    <h2>CDK vs SAM</h2>
+
+    <h3>SAM</h3>
+    <ul>
+      <li>Serverless focused</li>
+      <li>Write your template declaratively in JSON or YAML</li>
+      <li>Great for quickly getting started with Lambda</li>
+      <li>Leverages CloudFormation</li>
+    </ul>
+
+    <h3>CDK</h3>
+    <ul>
+      <li>Superset of CloudFormation (leverages CF)</li>
+      <li>Can utilize all AWS services</li>
+      <li>Write infrastructure in a programming language</li>
+    </ul>
+
+    <h2>CDK + SAM</h2>
+    <p>You can use the SAM CLI to locally test your CDK apps.</p>
+    <p>
+      You first run <code>cdk synth</code> to generate the CloudFormation
+      template. Then using the generated template we can utilise SAM to run the
+      template.
+    </p>
+    <p>
+      Then you run
+      <code>sam local invoke -t &lt;CDK-Stack-Name&gt;.template.json</code> to
+      test your API.
+    </p>
+
+    <h2>CDK Constructs</h2>
+
+    <p>
+      A construct is a component that encapsulates everything CDK needs to
+      create the final CloudFormation stack.
+    </p>
+    <p>
+      A construct can represent a single AWS resource such as an S3 bucket or
+      multiple related resources such as a queue connected to lambda connected
+      to dynamoDB.
+    </p>
+    <p>
+      An AWS Construct Library exists which is a collection of Constructs
+      included in the AWS CDK for every AWS resource, there are 3 levels of
+      constructs available.
+    </p>
+    <p>
+      The Construct Hub also exists which contains additional constructs
+      available from AWS 3rd parties.
+    </p>
+
+    <h3>Layer 1 Constructs</h3>
+    <ul>
+      <li>
+        Can be called CFN resources which represents all resources directly in
+        CloudFormation
+      </li>
+      <li>
+        Constructs are periodically generated from CloudFormation Resource
+        Specification
+      </li>
+      <li>Construct names start with Cfn (e.g CfnBucket)</li>
+      <li>
+        You must explicitly configure all resource properties so for a bucket
+        you must pass the bucket name.
+      </li>
+    </ul>
+
+    <h3>Layer 2 Constructs</h3>
+    <ul>
+      <li>AWS resources but at a higher level, intent-based API</li>
+      <li>
+        Same functionality as L1 but with convenient defaults and boilerplate
+      </li>
+      <li>Providers methods that make it simpler to work with the resource</li>
+    </ul>
+
+    <h2>Layer 3 Constructs</h2>
+    <ul>
+      <li>Can be called Patterns which represent multiple related resources</li>
+      <li>
+        Helps for completing common tasks in AWS such as setting up a load
+        balancer that connects to EC2 instances which connect to RDS.
+      </li>
+    </ul>
+
+    <h2>Important Commands</h2>
+    <ul>
+      <li>
+        <code>npm install -g aws-cdk-lib</code> - Install the CDK CLI and
+        libraries
+      </li>
+      <li>
+        <code>cdk init app</code> - Create a new CDK project from a specified
+        template
+      </li>
+      <li>
+        <code>cdk synth</code> - Synthesizes and prints the CloudFormation
+        template
+      </li>
+      <li>
+        <code>cdk bootstrap</code> - Deploys the CDK Toolkit staging stack
+      </li>
+      <li><code>cdk deploy</code> - Deploy the Stack(s)</li>
+      <li>
+        <code>cdk diff</code> - View differences of local CDK and deployed Stack
+      </li>
+      <li><code>cdk destroy</code> - Destroy the Stack(s)</li>
+    </ul>
+
+    <p>
+      Bootstrapping is the process of provisioning resources for CDK before you
+      deploy CDK apps into an AWS environment, AWS environment is the account
+      and region.
+    </p>
+    <p>
+      CloudFormation Stack called CDKToolkit is created and contains an S3
+      bucket to store files and IAM roles to grant permission for platform
+      deployments.
+    </p>
+    <p>
+      <code>cdk bootstrap aws://&lt;aws_account&gt;&lt;aws_region&gt;</code> is
+      run for each new environment.
+    </p>
+    <p>
+      Otherwise you will get an error "Policy contains a statement with one or
+      more invalid principle"
+    </p>
+
+    <h2>Unit Testing</h2>
+    <p>
+      Can test using the CDK Assertions Module combined with popular testing
+      frameworks such as Jest.
+    </p>
+    <p>
+      We can verify we have specific resources, rules, conditions, parameters
+      etc.
+    </p>
+    <p>
+      There are fine-grained assertion tests to confirm a specific resource is
+      created with particular properties.
+    </p>
+    <p>
+      There are snapshot tests that ensure the template is the same as a
+      previously created template.
+    </p>
+    <p>To import the previous template:</p>
+    <ul>
+      <li><code>Template.fromStack(MyStack)</code>: stack build in CDK</li>
+      <li>
+        <code>Template.fromString(myString)</code>: stack built outside CDK
+      </li>
+    </ul>
   </body>
 </html>
