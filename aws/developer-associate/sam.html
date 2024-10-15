@@ -12,5 +12,186 @@
     <div>
       <a href="./index.html">Back to Home</a>
     </div>
+
+    <h2>Overview</h2>
+    <p>
+      SAM, which stands for Serverless Application Model, is a framework
+      designed for developing and deploying serverless applications. It
+      simplifies the process of defining and managing serverless resources on
+      AWS.
+    </p>
+    <p>Key features of SAM include:</p>
+    <ul>
+      <li>All configuration is written in YAML format</li>
+      <li>Generates complex CloudFormation from simple SAM YAML files</li>
+      <li>
+        Supports a wide range of CloudFormation features, including Outputs,
+        Mappings, Parameters, and Resources
+      </li>
+      <li>Deployment to AWS requires only two commands</li>
+      <li>Can leverage CodeDeploy for Lambda function deployments</li>
+      <li>
+        Enables local testing and development of Lambda functions, API Gateway,
+        and DynamoDB
+      </li>
+    </ul>
+    <p>
+      SAM streamlines the serverless development process, making it easier for
+      developers to build, test, and deploy serverless applications on AWS
+      infrastructure.
+    </p>
+    <p>Transform header indicates it's SAM template</p>
+    <code>AWS::Serverless-2016-10-31</code>
+    <p>Code looks like</p>
+    <code>AWS::Serverless::Function</code>
+    <code>AWS::Serverless::Api</code>
+    <p>Package and deploy code with</p>
+    <code>sam deploy</code>
+    <p>Can syn local changes to AWS lambda quickly with</p>
+    <code>sam sync --watch</code>
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/sam-deployment.png"
+    />
+
+    <h3>Sam Accelerate (sam sync)</h3>
+    <p>
+      SAM accelerate is a set of features to reduce latency while deploying
+      resources to AWS.
+    </p>
+    <p>
+      SAM sync lets us synchronize our projects declared in SAM templates to
+      AWS, synchronize code changes to AWS without updating infrastructure,
+      users service APIs and bypasses CloudFormation.
+    </p>
+    <p><code>sam sync</code> - synchronize code and infrastructure</p>
+    <p>
+      <code>sam sync --code</code> - synchronize code changes without updating
+      the infrastructure
+    </p>
+
+    <h2>Debugging</h2>
+    <p>
+      SAM provides powerful debugging capabilities to help developers test and
+      troubleshoot their serverless applications:
+    </p>
+    <ul>
+      <li>Use SAM CLI for local development and testing</li>
+      <li>
+        Locally build, test, and debug your serverless applications that are
+        defined using AWS SAM templates
+      </li>
+      <li>Provides a Lambda-like execution environment locally</li>
+      <li>
+        Combine SAM CLI with AWS Toolkits to enable step-through debugging of
+        your code
+      </li>
+      <li>
+        Supported IDEs:
+        <ul>
+          <li>AWS Cloud9</li>
+          <li>VS Code</li>
+          <li>JetBrains suite</li>
+        </ul>
+      </li>
+      <li>
+        AWS Toolkits - IDE plugins which allow you to:
+        <ul>
+          <li>Build</li>
+          <li>Test</li>
+          <li>Debug</li>
+          <li>Deploy</li>
+          <li>Invoke Lambda functions built using AWS SAM</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>Policy Templates</h2>
+    <p>
+      SAM provides a list of templates to apply permissions to your Lambda
+      functions:
+    </p>
+    <ul>
+      <li>
+        <code>S3ReadPolicy:</code> Gives read-only permissions to objects in S3
+      </li>
+      <li><code>SQSPollerPolicy:</code> Allows polling of an SQS queue</li>
+      <li>
+        <code>DynamoDBCrudPolicy:</code> Enables CRUD operations on a DynamoDB
+        table
+      </li>
+    </ul>
+    <p>These policies automatically become IAM roles.</p>
+
+    <h2>CodeDeploy</h2>
+    <ul>
+      <li>SAM natively uses CodeDeploy to update Lambda functions</li>
+      <li>Offers traffic shifting feature</li>
+      <li>
+        Provides pre and post-traffic hook features to validate deployment
+      </li>
+      <li>Enables easy and automated rollback using CloudWatch alarms</li>
+    </ul>
+
+    <h2>Summary</h2>
+    <ul>
+      <li>Built on top of CloudFormation</li>
+      <li>SAM requires the Transform and Resources sections in config.yaml</li>
+      <li>
+        <code>sam build</code> - fetch dependencies and create local deployment
+        artifacts
+      </li>
+      <li>
+        <code>sam package</code> - package and upload to Amazon S3, generate CF
+        template
+      </li>
+      <li><code>sam deploy</code> - deploy to CloudFormation</li>
+      <li>SAM policy templates for easy IAM policy definition</li>
+      <li>Fully integrated with CodeDeploy</li>
+    </ul>
+
+    <h2>Serverless Application Repository</h2>
+    <ul>
+      <li>Managed repository for serverless applications</li>
+      <li>Applications are packaged using SAM</li>
+      <li>
+        Build and publish applications that can be re-used by organizations:
+        <ul>
+          <li>Can share publicly</li>
+          <li>Can share with other AWS accounts</li>
+        </ul>
+      </li>
+      <li>
+        Application settings and behavior can be customized using environment
+        variables
+      </li>
+    </ul>
+
+    <h2>SAM Local</h2>
+    <p>
+      Locally start AWS Lambda, creates a local endpoint that emulates AWS
+      Lambda, can run automated tests against this endpoint.
+    </p>
+    <code>sam local start-lambda</code>
+    <p>
+      Can invoke lambda function locally, invoke the lambda function once with a
+      payload then quit once invocation completes, this is helpful for
+      generating test cases.
+    </p>
+    <code>sam local invoke</code>
+    <p>Can also start a local API gateway endpoint.</p>
+    <code>sam local start-api</code>
+    <p>Generate AWS events for lambda functions</p>
+    <code>sam local generate-event</code>
+
+    <h2>SAM - Multiple Environments</h2>
+    <p>
+      Might want to deploy different configuration to a dev environment compared
+      to production to save costs for example.
+    </p>
+    <p>Within the samconfig.toml you can ser parameters using.</p>
+    <p><code>[dev.deploy.parameters]</code></p>
+    <p>Then <code>sam deploy --config-env dev</code></p>
+    <p><code>[prod.deploy.parameters]</code></p>
+    <p>Or <code>sam deploy --config-env prod</code></p>
   </body>
 </html>
