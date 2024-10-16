@@ -16,5 +16,243 @@
     <div>
       <a href="./index.html">Back to Home</a>
     </div>
+
+    <h2>Overview</h2>
+    <p>
+      AWS Cognito provides identity management for application users, allowing
+      them to interact with your application securely. It's designed for
+      application users rather than IAM users.
+    </p>
+
+    <h3>Key Components</h3>
+    <ul>
+      <li>
+        <strong>Cognito User Pools:</strong>
+        <ul>
+          <li>Provide sign-in functionality for app users</li>
+          <li>
+            Integrate with API Gateway and Application Load Balancer (ALB)
+          </li>
+        </ul>
+      </li>
+      <li>
+        <strong>Cognito Identity Pools (Federated Identity):</strong>
+        <ul>
+          <li>
+            Allow users to obtain AWS credentials and access AWS resources
+            directly
+          </li>
+          <li>Integrate with Cognito User Pools as an identity provider</li>
+        </ul>
+      </li>
+      <li>
+        <strong>Cognito Sync:</strong>
+        <ul>
+          <li>Synchronizes data from devices to Cognito</li>
+          <li>Note: This feature is deprecated and replaced by AppSync</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Cognito vs IAM</h3>
+    <ul>
+      <li>IAM is for users you trust within your AWS environment</li>
+      <li>Cognito is for all other users</li>
+      <li>
+        Consider using Cognito when you have:
+        <ul>
+          <li>Hundreds of users</li>
+          <li>Mobile users</li>
+          <li>Need to authenticate with SAML</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>User Pools</h2>
+    <p>
+      User Pools are a key component of AWS Cognito, providing a serverless
+      database for managing users of your web and mobile applications. They
+      offer a range of features to enhance security and user management:
+    </p>
+    <ul>
+      <li>
+        Create a serverless database of users for your web and mobile apps
+      </li>
+      <li>Simple login with username/email and password combination</li>
+      <li>Password reset functionality</li>
+      <li>Email and phone number authentication</li>
+      <li>Multi-Factor Authentication (MFA)</li>
+      <li>Support for federated identity users from Facebook, Google, SAML</li>
+      <li>
+        Ability to block users if their credentials are compromised elsewhere
+      </li>
+      <li>Login process returns a JSON Web Token (JWT)</li>
+      <li>
+        The JWT contains information about the user and potentially extra
+        information such as when the token expires
+      </li>
+      <li>Integrates with API gateway and ALB</li>
+    </ul>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cup-api-gateway-integration.png"
+    />
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cup-alb-integration.png"
+    />
+
+    <h3>Additional User Pool Features</h3>
+    <ul>
+      <li>
+        Cognito User Pools can invoke a Lambda function synchronously on various
+        triggers:
+        <ul>
+          <li>Authentication events</li>
+          <li>Sign-up</li>
+          <li>Messages</li>
+          <li>Token creation</li>
+        </ul>
+      </li>
+      <li>
+        Hosted Authentication UI:
+        <ul>
+          <li>
+            Cognito provides a pre-built, customizable UI for sign-up and login
+            workflows
+          </li>
+          <li>
+            This UI can be tailored to match your application's look and feel
+          </li>
+        </ul>
+      </li>
+      <li>For custom domains you must create an ACM in us-east-1</li>
+      <li>
+        The custom domain must be defined in the "App Integration" section
+      </li>
+      <li>
+        Cognito offers adaptive authentication, if the login seems suspicious
+        the user will be prompted for MFA.
+      </li>
+    </ul>
+
+    <h2>Integrating with an ALB</h2>
+    <p>
+      Your ALB can securely authenticate users so your applications can focus on
+      pure business logic.
+    </p>
+    <p>
+      The ALB can connect to an Identity Provider such as OpenID Connect or
+      utilise Cognito User Pools which allow social IdPs such as Facebook or
+      corporate identities using SAML or Microsoft AD.
+    </p>
+    <p>
+      ALB can be configured how to handle unauthenticated users, it cna allow
+      the request (imagine the login page), reject or redirect.
+    </p>
+    <p>
+      If the user is authenticated the ALB will forward the user information to
+      the ALB target group.
+    </p>
+
+    <h2>Cognito Identity Pools (Federated Identities)</h2>
+    <p>
+      Identity Pools provide a way for users outside our AWS environment to
+      access AWS resources securely. This is especially useful when dealing with
+      a large number of users, where creating individual IAM users would not be
+      scalable.
+    </p>
+
+    <h3>Key Features</h3>
+    <ul>
+      <li>
+        Identity pools can include:
+        <ul>
+          <li>Public providers (Amazon, Facebook, Google, Apple)</li>
+          <li>Users in Cognito User Pools</li>
+          <li>OpenID Connect Providers and SAML identity providers</li>
+          <li>Developer authenticated identities (custom login server)</li>
+          <li>Unauthenticated guest access</li>
+        </ul>
+      </li>
+      <li>Users are given temporary AWS credentials</li>
+      <li>
+        Users access services through API Gateway:
+        <ul>
+          <li>IAM policies applied to credentials are defined in Cognito</li>
+          <li>
+            Policies can be customized based on the user_id for fine-grained
+            control
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/cognito-identity-pools.png"
+    />
+
+    <h3>IAM Roles and Policies</h3>
+    <ul>
+      <li>Default IAM roles for authenticated and guest users</li>
+      <li>
+        Rules can be defined to choose the role for each user based on the
+        user's ID
+      </li>
+      <li>User access can be partitioned using policy variables</li>
+      <li>
+        IAM credentials are obtained by Cognito Identity Pools through AWS
+        Security Token Service (STS)
+      </li>
+      <li>The roles must have a trust policy of Cognito Identity Pools</li>
+    </ul>
+
+    <p>
+      This approach allows for secure and scalable access management for
+      external users, providing them with the necessary AWS resources while
+      maintaining control and fine-grained access policies.
+    </p>
+
+    <h2>User Pools vs Identity Pools</h2>
+    <h3>Cognito User Pools</h3>
+    <ul>
+      <li>Database of users for your web and mobile applications</li>
+      <li>Allows federation of logins through public social, OIDC, SAML</li>
+      <li>Can customize the hosted UI for authentication</li>
+      <li>Has triggers with AWS Lambda during the authentication flow</li>
+    </ul>
+
+    <h3>Cognito Identity Pools</h3>
+    <ul>
+      <li>Obtain AWS credentials for your users</li>
+      <li>Users can be unauthenticated guests</li>
+      <li>
+        Users can login through public social, OIDC, SAML and Cognito User Pools
+      </li>
+      <li>
+        Users are mapped to IAM roles and policies, can leverage policy
+        variables (e.g., <code>s3:L/bucket-name/${user.id}</code>)
+      </li>
+    </ul>
+
+    <h2>Cognito Sync</h2>
+    <p>
+      <strong>Note:</strong> Cognito Sync is deprecated. It's recommended to use
+      AppSync instead.
+    </p>
+    <ul>
+      <li>Store preferences, configuration, state of app</li>
+      <li>Cross-device synchronization (any platform)</li>
+      <li>Offline capability</li>
+      <li>
+        Store data in datasets up to 1MB, up to 20 datasets to synchronize
+      </li>
+      <li>
+        Push sync - silently notify across all devices when identity data
+        changes
+      </li>
+      <li>Cognito Stream - stream data from Cognito to Kinesis</li>
+      <li>Cognito Events - execute Lambda functions in response to events</li>
+    </ul>
   </body>
 </html>
