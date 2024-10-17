@@ -12,5 +12,523 @@
     <div>
       <a href="./index.html">Back to Home</a>
     </div>
+
+    <h2>Overview</h2>
+    <p>
+      CICD (Continuous Integration/Continuous Delivery) is the ability to push
+      code and have it automatically deployed to production.
+    </p>
+
+    <h2>Introduction to CICD in AWS</h2>
+    <p>
+      CICD in AWS allows developers to push code to a repository and have it
+      automatically deployed to AWS services. Key aspects include:
+    </p>
+    <ul>
+      <li>Support for different stages (dev, test, prod)</li>
+      <li>Automatic test execution before deployment</li>
+      <li>Removal of manual steps to reduce errors</li>
+      <li>Optional approval process for deployment</li>
+      <li>Aims to ease deployment and increase safety</li>
+    </ul>
+
+    <h3>AWS CICD Services</h3>
+    <ul>
+      <li><strong>CodeCommit:</strong> Storing code</li>
+      <li>
+        <strong>CodePipeline:</strong> Automating the pipeline from code to EBS
+      </li>
+      <li><strong>CodeBuild:</strong> Building and testing code</li>
+      <li><strong>CodeDeploy:</strong> Deploying code to EC2 instances</li>
+      <li>
+        <strong>CodeStar:</strong> Managing software development activities in
+        one place
+      </li>
+      <li>
+        <strong>CodeArtifact:</strong> Storing, publishing, and sharing software
+        packages
+      </li>
+      <li>
+        <strong>CodeGuru:</strong> Automated code reviews using machine learning
+      </li>
+    </ul>
+
+    <h3>Continuous Integration (CI)</h3>
+    <ul>
+      <li>
+        Developers frequently push code to a repository (e.g., GitHub,
+        CodeCommit, BitBucket)
+      </li>
+      <li>
+        A testing/build server checks code as it's published (e.g., CodeBuild,
+        Jenkins CI)
+      </li>
+      <li>Developers receive feedback on test pass/fail status</li>
+      <li>Helps find and fix bugs early</li>
+      <li>Enables faster code delivery and more frequent deployments</li>
+      <li>Improves the development cycle</li>
+    </ul>
+
+    <h3>Continuous Delivery (CD)</h3>
+    <ul>
+      <li>Ensures software can be released reliably when needed</li>
+      <li>
+        After CI passes, a deployment server (e.g., CodeDeploy) deploys code to
+        application servers
+      </li>
+      <li>Enables frequent and quick deployments</li>
+      <li>Can shift from releasing every few months to multiple times a day</li>
+    </ul>
+
+    <img
+      src="https://aws-developer-associate-notes-images.s3.eu-west-2.amazonaws.com/aws-cicd.png"
+    />
+
+    <h2>CodeCommit Overview</h2>
+    <h3>Key Features</h3>
+    <ul>
+      <li>Offers a private Git repository</li>
+      <li>No size limit on repositories</li>
+      <li>Fully managed and highly available</li>
+      <li>Code stored only in AWS Cloud for enhanced security</li>
+      <li>Access control managed with IAM</li>
+      <li>Can integrate with Jenkins and AWS CodeBuild</li>
+    </ul>
+
+    <h3>Version Control with Git</h3>
+    <p>
+      Version control is the ability to understand changes that happen to code
+      over time. Git, a distributed version control system, enables this
+      functionality:
+    </p>
+    <ul>
+      <li>Exists on both local computers and remote servers</li>
+      <li>Facilitates collaboration among developers</li>
+      <li>Ensures all versions of code are backed up</li>
+      <li>Enables easy code auditing</li>
+      <li>Allows for simple code rollbacks</li>
+    </ul>
+
+    <h3>Notification Rules</h3>
+    <p>
+      CodeCommit allows you to create notification rules for various events,
+      such as:
+    </p>
+    <ul>
+      <li>Pull requests being made into the main branch</li>
+      <li>Changes to specific branches</li>
+      <li>Commit comments</li>
+    </ul>
+    <p>
+      These notifications can be sent via email or other supported AWS
+      notification channels.
+    </p>
+
+    <h3>Security</h3>
+    <p>
+      CodeCommit provides robust security features to ensure the safety and
+      integrity of your code:
+    </p>
+    <ul>
+      <li>All interactions are done using Git</li>
+      <li>
+        Authentication:
+        <ul>
+          <li>SSH Keys</li>
+          <li>HTTPS</li>
+        </ul>
+      </li>
+      <li>
+        Authorization:
+        <ul>
+          <li>IAM policies to manage user/role permissions</li>
+        </ul>
+      </li>
+      <li>
+        Encryption:
+        <ul>
+          <li>Encrypted through AWS KMS</li>
+          <li>Encrypted in transit using HTTPS or SSH</li>
+        </ul>
+      </li>
+      <li>
+        Cross-account Access:
+        <ul>
+          <li>Do not share credentials/SSH keys</li>
+          <li>
+            Use an IAM Role in your AWS account and use AWS STS (AssumeRole API)
+          </li>
+        </ul>
+      </li>
+    </ul>
+
+    <h2>CodePipeline Overview</h2>
+    <p>
+      CodePipeline is a visual workflow tool to orchestrate your CICD process.
+      It integrates with various AWS services and third-party tools at different
+      stages of the pipeline.
+    </p>
+
+    <h3>Pipeline Stages</h3>
+    <ul>
+      <li><strong>Source:</strong> CodeCommit, ECR, S3, Bitbucket, GitHub</li>
+      <li><strong>Build:</strong> CodeBuild, Jenkins, CloudBees, TeamCity</li>
+      <li>
+        <strong>Test:</strong> CodeBuild, AWS Device Farm, 3rd party tools
+      </li>
+      <li><strong>Deploy:</strong> CodeDeploy, EBS, CloudFormation, ECS, S3</li>
+    </ul>
+
+    <h3>Pipeline Structure</h3>
+    <ul>
+      <li>Consists of stages, each with sequential or parallel actions</li>
+      <li>Example workflow: Build → Test → Deploy → Load Testing</li>
+      <li>Manual approval can be required at any stage</li>
+    </ul>
+
+    <h3>Artifacts</h3>
+    <ul>
+      <li>
+        Each pipeline can create artifacts (anything created by the pipeline)
+      </li>
+      <li>
+        Artifacts are stored in an S3 bucket and passed on to the next stage
+      </li>
+      <li>
+        Services like CodeBuild and CodeCommit interact through the S3 bucket,
+        not directly
+      </li>
+    </ul>
+
+    <h3>Monitoring and Troubleshooting</h3>
+    <ul>
+      <li>Use CloudWatch events for troubleshooting</li>
+      <li>Create events for failed pipelines or cancelled stages</li>
+      <li>Console provides information if CodePipeline fails</li>
+      <li>Ensure the IAM service role has necessary permissions for actions</li>
+      <li>Use AWS CloudTrail to audit AWS API calls</li>
+    </ul>
+
+    <h2>CodeBuild Overview</h2>
+    <p>
+      CodeBuild is a fully managed build service that compiles source code, runs
+      tests, and produces software packages.
+    </p>
+
+    <h3>Key Features</h3>
+    <ul>
+      <li>Source: CodeCommit, S3, BitBucket, GitHub</li>
+      <li>
+        Build instructions in a buildspec.yml file or inserted in console
+        (buildspec.yml is best practice)
+      </li>
+      <li>Output logs can be stored in Amazon S3 & CloudWatch logs</li>
+      <li>Use CloudWatch metrics to monitor build statistics</li>
+      <li>
+        Use CloudWatch events to detect failed builds and trigger notifications
+      </li>
+      <li>
+        Use CloudWatch alarms to notify if you need thresholds for failures
+      </li>
+      <li>Build Projects can be defined within CodePipeline or CodeBuild</li>
+      <li>Can cache some files in S3 to speed up build</li>
+    </ul>
+
+    <h3>Supported Environments</h3>
+    <p>CodeBuild offers pre-supported environments for:</p>
+    <ul>
+      <li>Java</li>
+      <li>Ruby</li>
+      <li>Python</li>
+      <li>Go</li>
+      <li>Node.js</li>
+      <li>Android</li>
+      <li>.NET Core</li>
+      <li>PHP</li>
+      <li>Docker - extend any environment you want</li>
+    </ul>
+
+    <h3>buildspec.yml</h3>
+    <ul>
+      <li>Must be at the root of the directory</li>
+      <li>
+        env can define environment variables:
+        <ul>
+          <li>Can be plaintext</li>
+          <li>Pulled from SSM Parameter Store</li>
+          <li>Variables stored in AWS Secrets Manager</li>
+        </ul>
+      </li>
+      <li>
+        phases - specify commands to run:
+        <ul>
+          <li>install - install dependencies</li>
+          <li>pre_build - final commands to execute before build</li>
+          <li>build - actual build commands</li>
+          <li>post_build - finishing touches such as zip output</li>
+        </ul>
+      </li>
+      <li>artifacts - which files to upload to S3 (encrypted with KMS)</li>
+      <li>cache - files to cache such as dependencies in S3</li>
+    </ul>
+
+    <h3>Local Build</h3>
+    <ul>
+      <li>For troubleshooting, can run locally</li>
+      <li>Need to install Docker and leverage CodeBuild agent</li>
+    </ul>
+
+    <h3>Inside VPC</h3>
+    <ul>
+      <li>By default, CodeBuild containers are launched outside your VPC</li>
+      <li>
+        Can specify a VPC configuration:
+        <ul>
+          <li>VPC ID</li>
+          <li>Subnet IDs</li>
+          <li>Security Group IDs</li>
+        </ul>
+      </li>
+      <li>
+        Build can access resources in your VPC such as RDS, ElastiCache, EC2,
+        ELB
+      </li>
+      <li>
+        Could be required for integration tests, data query, testing load
+        balancers
+      </li>
+    </ul>
+
+    <h2>CodeDeploy Overview</h2>
+    <p>
+      CodeDeploy is a service that automates application deployments to various
+      compute services, including EC2 instances, on-premises servers, Lambda
+      functions, and ECS services.
+    </p>
+
+    <h3>Making it Work</h3>
+    <ul>
+      <li>
+        Each EC2 instance/on-premise server must be running the CodeDeploy agent
+      </li>
+      <li>appspec.yml tells CodeDeploy how to deploy the application</li>
+      <li>
+        CodeDeploy agent consistently talks to CodeDeploy to check for new code
+        to deploy
+      </li>
+    </ul>
+
+    <h3>Primary Components</h3>
+    <ul>
+      <li>
+        <strong>Application:</strong> A unique name that functions as a
+        container (revision, deployment configuration)
+      </li>
+      <li>
+        <strong>Compute Platform:</strong> EC2/On-Premise, AWS Lambda, or Amazon
+        ECS
+      </li>
+      <li>
+        <strong>Deployment Configuration:</strong> A set of deployment rules for
+        success/failure
+      </li>
+      <li>
+        <strong>Deployment Group:</strong> Group of tagged EC2 instances (allows
+        for gradual deployment or dev deployment)
+      </li>
+      <li>
+        <strong>Deployment Type:</strong> In-place deployment or Blue/Green
+        deployment
+      </li>
+      <li>
+        <strong>IAM Instance Profile:</strong> Gives EC2 instances permission to
+        access S3/GitHub
+      </li>
+      <li>
+        <strong>Application Revision:</strong> Application code + appspec.yml
+      </li>
+      <li>
+        <strong>Service Role:</strong> IAM role for CodeDeploy to perform
+        operations
+      </li>
+      <li>
+        <strong>Target Revision:</strong> Most recent revision to deploy to a
+        deployment group
+      </li>
+    </ul>
+
+    <h3>appspec.yml</h3>
+    <ul>
+      <li>Located at the root of the code</li>
+      <li>
+        <strong>files:</strong> How to source and copy from S3/GitHub to file
+        system
+      </li>
+      <li>
+        <strong>hooks:</strong> Set of instructions to deploy the new version
+        (with timeouts):
+        <ol>
+          <li>ApplicationStop</li>
+          <li>DownloadBundle</li>
+          <li>BeforeInstall</li>
+          <li>Install</li>
+          <li>AfterInstall</li>
+          <li>ApplicationStart</li>
+          <li>
+            ValidateService (Important for verifying successful deployment)
+          </li>
+        </ol>
+      </li>
+    </ul>
+
+    <h3>Deployment Configurations</h3>
+    <ul>
+      <li>One at a time</li>
+      <li>Half at a time</li>
+      <li>All at once</li>
+      <li>Custom (e.g., minimum 75% healthy hosts)</li>
+      <li>Blue/Green deployment</li>
+    </ul>
+
+    <h3>Failures and Rollbacks</h3>
+    <ul>
+      <li>EC2 instances stay in failed state</li>
+      <li>New deployments will first be deployed to failed instances</li>
+      <li>
+        Rollback options: deploy old version or enable automated rollback for
+        failures
+      </li>
+    </ul>
+
+    <h3>CodeDeploy for EC2 and ASG</h3>
+    <h4>EC2</h4>
+    <ul>
+      <li>Define deployment using appspec.yml and deployment strategy</li>
+      <li>In-place updates for deployment group of EC2 instances</li>
+      <li>Can use hooks to verify deployment after each phase</li>
+    </ul>
+
+    <h4>ASG</h4>
+    <h5>In-place Deployment</h5>
+    <ul>
+      <li>Updates existing EC2 instances</li>
+      <li>New EC2 instances created by ASG get automated deployments</li>
+    </ul>
+
+    <h5>Blue/Green Deployment</h5>
+    <ul>
+      <li>New ASG is created (settings are copied)</li>
+      <li>Choose how long to keep old EC2 instances</li>
+      <li>Must use ELB which then points at the new ASG</li>
+    </ul>
+
+    <h3>Rollback and Redeploy</h3>
+    <ul>
+      <li>Rollback: redeploy a previous version of your code</li>
+      <li>
+        Rollback triggers:
+        <ul>
+          <li>
+            Automatically: on deployment failure or CloudWatch alarm threshold
+          </li>
+          <li>Manually</li>
+        </ul>
+      </li>
+      <li>Can disable rollbacks</li>
+      <li>Rollback redeploys last known good version as a new deployment</li>
+    </ul>
+
+    <h2>CodeArtifact Overview</h2>
+    <p>
+      CodeArtifact is a secure, scalable, and cost-effective artifact management
+      system for software development.
+    </p>
+    <ul>
+      <li>
+        Manages software packages that depend on each other for building (code
+        dependencies)
+      </li>
+      <li>
+        Works with common tools such as Maven, Gradle, NPM, Yarn, Twine, PIP,
+        and NuGet
+      </li>
+      <li>
+        Allows developers and CodeBuild to retrieve dependencies within AWS
+        cloud
+      </li>
+      <li>Can proxy public artifact repositories</li>
+      <li>Stores your own code artifacts</li>
+    </ul>
+
+    <h2>CodeGuru Overview</h2>
+    <p>
+      CodeGuru is a machine learning-powered service for code reviews and
+      application performance recommendations.
+    </p>
+    <ul>
+      <li>
+        CodeGuru Reviewer: Automated code reviews with static code analysis
+      </li>
+      <li>
+        CodeGuru Profiler: Visibility and recommendations about application
+        performance during runtime (production)
+      </li>
+      <li>
+        Trained on thousands of open-source repositories and all Amazon
+        repositories
+      </li>
+      <li>Supports Java and Python</li>
+      <li>Integrates with GitHub, BitBucket, and AWS CodeCommit</li>
+    </ul>
+
+    <h3>CodeGuru Profiler</h3>
+    <ul>
+      <li>Understands runtime behavior</li>
+      <li>Identifies and removes code inefficiencies</li>
+      <li>Improves application performance</li>
+      <li>Decreases compute costs</li>
+      <li>Provides heap summary</li>
+      <li>Offers anomaly detection</li>
+      <li>Supports applications on AWS cloud or on-premise</li>
+      <li>Minimal overhead on the application</li>
+    </ul>
+
+    <h2>CodeStar Overview</h2>
+    <p>
+      CodeStar is a unified interface that integrates various AWS services to
+      provide a streamlined development and deployment experience.
+    </p>
+    <ul>
+      <li>
+        Provides a single view to integrate solutions from GitHub, CodeCommit,
+        CodeBuild, CodeDeploy, CloudFormation, CodePipeline, and CloudWatch
+      </li>
+      <li>
+        Enables quick creation of CICD-ready projects for EC2, Lambda, and
+        Elastic Beanstalk
+      </li>
+      <li>
+        Supported languages: C#, Go, HTML, Java, Node.js, PHP, Python, Ruby
+      </li>
+      <li>Integrates issue tracking with Jira and GitHub Issues</li>
+      <li>
+        Offers ability to integrate with Cloud9 for a web-based IDE (not
+        available in all regions)
+      </li>
+      <li>Provides a single dashboard to view all project components</li>
+      <li>
+        The service itself is free - you only pay for the underlying services
+        used
+      </li>
+      <li>Note: Offers limited customization options</li>
+    </ul>
+
+    <h3>Key Benefits</h3>
+    <ul>
+      <li>Simplifies project setup and management</li>
+      <li>Accelerates development with pre-configured project templates</li>
+      <li>Centralizes project monitoring and management</li>
+      <li>Facilitates team collaboration with integrated tools</li>
+    </ul>
   </body>
 </html>
